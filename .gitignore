@@ -1,0 +1,7 @@
+.DS_Store
+vim/.vim/**/plugged
+tmux/.tmux/**/plugins
+ncspot/.config/ncspot/*
+
+!ncspot/.config/ncspot/config.toml
+!tmux/.tmux/**/plugins/tpm

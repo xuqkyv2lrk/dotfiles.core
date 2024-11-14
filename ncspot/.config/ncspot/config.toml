@@ -1,0 +1,10 @@
+volnorm = true
+use_nerdfont = true
+notify = true
+
+statusbar_format = "%artists - %title"
+
+[track_format]
+left = "%title | %artists"
+center = "%album"
+right = "%saved %duration"

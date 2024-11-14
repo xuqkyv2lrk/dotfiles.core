@@ -1,0 +1,37 @@
+[init]
+    defaultBranch = main
+
+[commit]
+    gpgsign = true
+
+[push]
+    autosetupremote = true
+    default = current
+
+[merge]
+    conflictstyle = zdiff3
+
+[rerere]
+    enabled = true
+
+[diff]
+    algorithm = histogram
+    submodule = log
+
+[submodule]
+    recurse = true
+
+[status]
+    submoduleSummary = true
+
+[includeIf "hasconfig:remote.*.url:gitlab:*/**"]
+    path = ~/.gitconfig-gitlab
+
+[includeIf "hasconfig:remote.*.url:gh:*/**"]
+    path = ~/.gitconfig-gh
+
+[includeIf "hasconfig:remote.*.url:codeberg:*/**"]
+    path = ~/.gitconfig-codeberg
+
+[pull]
+	rebase = false

@@ -1,0 +1,56 @@
+{
+    "diagnostic.errorSign": "✘",
+    "diagnostic.warningSign": "⚠",
+    "diagnostic.infoSign": "?",
+    "diagnostic.checkCurrentLine": true,
+    "codeLens.enable": true,
+    "coc.preferences.formatOnSaveFiletypes": [
+        "css",
+        "markdown",
+        "typescript",
+        "javascript",
+        "json",
+        "go",
+        "rust"
+    ],
+    "workspace.ignoredFolders": [
+        "$HOME",
+        "$HOME/.cargo/**",
+        "$HOME/.rustup/**"
+    ],
+    "coc.preferences.hoverTarget": "float",
+    "languageserver": {
+        "terraform": {
+            "command": "terraform-ls",
+            "args": ["serve"],
+            "filetypes": [
+              "terraform",
+              "tf"
+            ],
+            "initializationOptions": {},
+            "settings": {}
+        },
+        "dockerfile": {
+            "command": "docker-langserver",
+            "filetypes": ["dockerfile"],
+            "args": ["--stdio"]
+        },
+        "golang": {
+            "command": "gopls",
+            "rootPatterns": ["go.mod", ".vim/", ".git/", ".hg/"],
+            "filetypes": ["go"],
+            "initializationOptions": {
+                "usePlaceholders": true,
+                "completeUnimported": true
+            }
+        }
+    },
+    "rust-analyzer.serverPath": "/usr/bin/rust-analyzer",
+    "go.goplsOptions": {
+        "staticcheck": true
+    },
+    "yaml.schemas": {
+        "kubernetes": "/*.yaml"
+    },
+}
+

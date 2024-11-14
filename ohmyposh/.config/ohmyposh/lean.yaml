@@ -1,0 +1,108 @@
+console_title_template: ""
+version: 3
+final_space: true
+disable_notice: true
+auto_upgrade: false
+
+palette:
+  os: "#ACB0BE"
+  closer: "p:os"
+  pink: "#F5C2E7"
+  lavender: "#B4BEFE"
+  mauve: "#CBA6F7"
+  blue: "#89B4FA"
+  red: "#F38BA8"
+  gray: "#A6ADC8"
+  green: "#A6E3A1"
+  yellow: "#F9E2AF"
+
+blocks:
+  - type: prompt
+    alignment: left
+    newline: true
+    segments:
+      - type: path
+        style: plain
+        background: transparent
+        foreground: "p:lavender"
+        template: "{{ .Path }}"
+        properties:
+          style: full
+      - type: git
+        style: plain
+        foreground: "p:gray"
+        background: transparent
+        template: |-
+          {{ if .UpstreamIcon }} {{ .UpstreamIcon }}{{ end }}{{ .HEAD }}
+          {{- if .StashCount }} *{{ .StashCount }}{{ end }}
+          {{- if .Working.Changed }}
+            {{- if or (.Working.Modified) (.Working.Deleted) }} !{{ add (.Working.Modified) (.Working.Deleted) }}{{ end }}
+            {{- if .Working.Untracked }} ?{{ .Working.Untracked }}{{ end }}
+          {{- end }}
+          {{- if .Staging.Changed }} +{{ add (.Staging.Modified) (.Staging.Added) (.Staging.Deleted) }}{{ end }}
+          {{- if gt .Behind 0 }} <p:mauve>⇣{{ .Behind }}</>{{ end }}
+          {{- if gt .Ahead 0 }} <p:green>⇡{{ .Ahead }}</>{{ end }}
+        properties:
+          branch_icon: ""
+          commit_icon: "@"
+          fetch_status: true
+          fetch_upstream_icon: true
+          source: cli
+          upstream_icons:
+            gh: "\uF408 "
+
+  - type: rprompt
+    overflow: hidden
+    segments:
+      - type: executiontime
+        style: plain
+        foreground: "p:yellow"
+        background: transparent
+        template: "{{ .FormattedMs }}"
+        properties:
+          threshold: 5000
+          style: round
+
+  - type: prompt
+    alignment: left
+    newline: true
+    segments:
+      - type: text
+        style: plain
+        foreground_templates:
+          - "{{if gt .Code 0}}p:red{{end}}"
+          - "{{if eq .Code 0}}p:pink{{end}}"
+        background: transparent
+        template: "❯"
+
+transient_prompt:
+  foreground_templates:
+    - "{{if gt .Code 0}}p:red{{end}}"
+    - "{{if eq .Code 0}}p:pink{{end}}"
+  background: transparent
+  template: "❯ "
+
+secondary_prompt:
+  foreground: "p:pink"
+  background: ""
+  template: "❯❯ "
+
+tooltips:
+  - type: kubectl
+    tips: 
+      - kubectl
+      - k
+      - kns
+    style: plain
+    foreground: "p:mauve"
+    background: transparent
+    template: "{{ .Context }}{{ if .Namespace }}/{{ .Namespace }}{{ else }}default{{ end }}"
+
+  - type: aws
+    tips: 
+      - aws
+      - terraform
+    style: plain
+    foreground: "p:yellow"
+    background: transparent
+    template: "{{ .Profile }}{{ if .Region }}@{{.Region}}{{end}}"

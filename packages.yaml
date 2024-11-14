@@ -1,0 +1,87 @@
+packages:
+  # Browsers & Communication
+  - firefox
+  - foot
+  - thunderbird
+
+  # Development Tools
+  - dmidecode
+  - docker-buildx
+  - docker-compose
+  - emacs
+  - go
+  - graphviz
+  - kubectl
+  - nodejs
+  - npm
+  - python
+  - ruby
+  - shellcheck
+  - tmux
+  - vim
+
+  # Document Processing
+  - pandoc
+
+  # File Management
+  - ranger
+
+  # Media & Music
+  - cava
+  - mpc
+  - mpd
+  - ncmpcpp
+  - ncspot
+
+  # Password Management
+  - 1password
+  - bitwarden
+
+  # Shell Utilities
+  - bat
+  - direnv
+  - eza
+  - fd
+  - fzf
+  - git-delta
+  - htop
+  - ripgrep
+  - stow
+  - unzip
+  - wget
+  - yq
+  - zoxide
+
+  # System Utilities
+  - man
+  - rsync
+  - wireguard-tools
+  - wl-clipboard
+  - zsh
+
+  # Virtualization
+  - libvirt
+  - qemu
+  - virt-install
+  - virt-manager
+  - virt-viewer
+
+# Handle distribution-specific names
+exceptions:
+  arch:
+    man: man-db man-pages
+    qemu: qemu-full
+
+  fedora:
+    bitwarden: https://github.com/bitwarden/clients/releases/download/desktop-v2024.11.1/Bitwarden-2024.11.1-x86_64.rpm
+    docker-buildx: docker-buildx-plugin
+    fd: fd-find
+    python: python3
+    qemu: qemu-kvm
+
+  opensuse-tumbleweed:
+    firefox: MozillaFirefox
+    man: man-pages
+    python: python3
+    shellcheck: ShellCheck
+    thunderbird: MozillaThunderbird
