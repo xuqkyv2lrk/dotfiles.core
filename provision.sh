@@ -300,8 +300,9 @@ function create_working_dirs() {
             echo -e "\n\e[35mCreated directory \e[1m${d}\e[0m"
         fi
     done
-
-    export PATH="${HOME}/bin:${PATH}"
+    
+    # Export paths needed for provisioning script during session
+    export PATH="${HOME}/bin:${HOME}/.emacs.d/bin:${PATH}"
 }
 
 # Function: install_tmux_plugins
@@ -442,6 +443,7 @@ function main() {
 
     echo -e "\n\e[1;37mInstall rust stable...\e[0;32m"
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+    . "${HOME}/.cargo/env"
     rustup default stable
 
     echo -e "\n\e[1;37mSetting up doom emacs...\e[0;32m"
