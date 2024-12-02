@@ -2,6 +2,16 @@
 
 set -u
 
+BOLD="\033[1m"
+RED="\033[31m"
+GREEN="\033[32m"
+YELLOW="\033[33m"
+BLUE="\033[34m"
+MAGENTA="\033[35m"
+NC="\033[0m"
+
+DIREPO_RAW="https://gitlab.com/wd2nf8gqct/dotfiles.di/-/raw/main"
+
 # Function: detect_distro
 # Description: Detects the Linux distribution of the current system.
 # Returns: The ID of the detected distribution (e.g., "arch", "fedora") or "unknown" if not detected.
@@ -355,6 +365,38 @@ EOF
     esac
 }
 
+# Function: select_desktop_interface
+# Description: Prompts the user to select a desktop interface.
+# Parameters:
+#   $1 - A reference to store the selected desktop interface.
+function select_desktop_interface() {
+    local __choice=$1
+    echo -e "\n${BLUE}${BOLD}Do you want to install a desktop interface?${NC}"
+    select choice in "Yes" "No"; do
+        case $choice in
+            "Yes")
+                echo -e "\n${BLUE}${BOLD}Please select a desktop interface:${NC}"
+                mapfile -t options < <(curl -sSL ${DIREPO_RAW}/packages.yaml | yq e '.desktop_packages | keys | .[]')
+                select de in "${options[@]}"; do
+                    if [[ -n "$de" ]]; then
+                        eval "$__choice"="${de}"
+                        return
+                    else
+                        echo -e "\n${RED}Invalid option. Please try again.${NC}\n"
+                    fi
+                done
+                ;;
+            "No")
+                printf "\nSkipping desktop interface installation.\n"
+                exit
+                ;;
+            *)
+                echo -e "\n${RED}Invalid option. Please try again.${NC}\n"
+                ;;
+        esac
+    done
+}
+
 # Function: main
 # Description: The main function that orchestrates the entire installation and configuration process.
 # Side effects:
@@ -365,16 +407,17 @@ EOF
 #   - Configures the system and installs dotfiles
 function main() {
     local distro=$(detect_distro)
+    local desktop_interface
 
     echo -e "\e[33mDetected distribution: \e[1m${distro}\e[0m"
 
     echo -e "\n\e[1;37mConfiguring additional repositories...\e[0m"
     install_repos $distro
     
-    echo -e "\n\e[1;37mPreparing to install packages...\e[0m"
-    while IFS= read -r package; do
-        [[ -n "$package" ]] && install_package "$package" "$distro"
-    done < <(get_packages)
+    #echo -e "\n\e[1;37mPreparing to install packages...\e[0m"
+    #while IFS= read -r package; do
+    #    [[ -n "$package" ]] && install_package "$package" "$distro"
+    #done < <(get_packages)
 
     create_working_dirs
 
@@ -412,6 +455,10 @@ function main() {
 
     echo -e "\n\e[0;33mUpdating shell for \e[1;35m$(whoami)\e[0;33m to \e[1;35mzsh\e[0;33m\e[0;32m"
     sudo chsh -s $(which zsh) "$(whoami)"
+
+    select_desktop_interface desktop_interface
+
+    curl -sSL "${DIREPO_RAW}/install.sh" | bash -s "${distro}" "${desktop_interface}"
 }
 
 main

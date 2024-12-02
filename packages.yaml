@@ -59,12 +59,15 @@ packages:
   - wl-clipboard
   - zsh
 
-  # Virtualization
+  # Virtualization & Networking (combined)
+  - dnsmasq
+  - ebtables
   - libvirt
   - qemu
   - virt-install
   - virt-manager
   - virt-viewer
+  - ufw
 
 # Handle distribution-specific names
 exceptions:
