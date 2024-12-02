@@ -42,4 +42,6 @@ plug "zsh-users/zsh-history-substring-search"
 plug "zsh-users/zsh-autosuggestions"
 plug "zsh-users/zsh-syntax-highlighting"
 
-eval "$(oh-my-posh init zsh --config ${HOME}/.config/ohmyposh/lean.yaml)"
+if [ -z "$SSH_CONNECTION" ] && [ "$(tty)" != "/dev/tty1" ]; then
+    eval "$(oh-my-posh init zsh --config ${HOME}/.config/ohmyposh/lean.yaml)"
+fi
