@@ -104,6 +104,7 @@ function install_repos() {
 
             # Remove iptables in package is installed as it conflicts with ebtables
             if yay -Qi iptables &> /dev/null; then
+                echo -e "\n${MAGENTA}Removing conflicting package ${BOLD}iptables${NC}"
                 yay -Rdd --noconfirm iptables
             fi
             
@@ -299,6 +300,8 @@ function create_working_dirs() {
             echo -e "\n\e[35mCreated directory \e[1m${d}\e[0m"
         fi
     done
+
+    export PATH="${HOME}/bin:${PATH}"
 }
 
 # Function: install_tmux_plugins
