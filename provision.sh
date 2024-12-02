@@ -103,7 +103,7 @@ function install_repos() {
             fi        
 
             # Remove iptables in package is installed as it conflicts with ebtables
-            if yay -Qi iptables &> /dev/null; then
+            if yay -Qi iptables 2>/dev/null | grep -q "^Name\s*: iptables$"; then
                 echo -e "\n${MAGENTA}Removing conflicting package ${BOLD}iptables${NC}"
                 yay -Rdd --noconfirm iptables
             fi
