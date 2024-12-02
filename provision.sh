@@ -101,6 +101,12 @@ function install_repos() {
                 cd ..
                 rm -rf yay
             fi        
+
+            # Remove iptables in package is installed as it conflicts with ebtables
+            if yay -Qi iptables &> /dev/null; then
+                yay -Rdd --noconfirm iptables
+            fi
+            
             # 1Password, Docker, and kubectl can be installed via yay
             ;;
         "fedora")
