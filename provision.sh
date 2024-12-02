@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -u
+set -eu
 
 BOLD="\033[1m"
 RED="\033[31m"
@@ -376,7 +376,7 @@ function select_desktop_interface() {
         case $choice in
             "Yes")
                 echo -e "\n${BLUE}${BOLD}Please select a desktop interface:${NC}"
-                mapfile -t options < <(curl -sSL ${DIREPO_RAW}/packages.yaml | yq e '.desktop_packages | keys | .[]')
+                mapfile -t options < <(curl -sSL ${DIREPO_RAW}/packages.yaml | yq -e '.desktop_packages | keys | .[]')
                 select de in "${options[@]}"; do
                     if [[ -n "$de" ]]; then
                         eval "$__choice"="${de}"
