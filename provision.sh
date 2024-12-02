@@ -93,11 +93,11 @@ function install_repos() {
             # Install yay if not already installed
             # Not a repo, but a helper for the AUR repository
             if ! command -v yay &> /dev/null; then
-                echo "Installing yay..."
-                sudo pacman -S --needed git base-devel
+                echo -e "\n${YELLOW}Installing yay...${GREEN}"
+                sudo pacman -S --needed --noconfirm git base-devel
                 git clone https://aur.archlinux.org/yay.git
                 cd yay
-                makepkg -si
+                makepkg -si --noconfirm
                 cd ..
                 rm -rf yay
             fi        
@@ -414,10 +414,10 @@ function main() {
     echo -e "\n\e[1;37mConfiguring additional repositories...\e[0m"
     install_repos $distro
     
-    #echo -e "\n\e[1;37mPreparing to install packages...\e[0m"
-    #while IFS= read -r package; do
-    #    [[ -n "$package" ]] && install_package "$package" "$distro"
-    #done < <(get_packages)
+    echo -e "\n\e[1;37mPreparing to install packages...\e[0m"
+    while IFS= read -r package; do
+        [[ -n "$package" ]] && install_package "$package" "$distro"
+    done < <(get_packages)
 
     create_working_dirs
 
