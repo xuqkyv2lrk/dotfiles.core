@@ -88,7 +88,7 @@ let g:markdown_syntax_conceal=1
 set updatetime=300
 set signcolumn=yes
 
-let g:coc_global_extensions = ['coc-tsserver', 'coc-yaml', 'coc-go', 'coc-rust-analyzer']
+let g:coc_global_extensions = ['coc-tsserver', 'coc-yaml', 'coc-go', 'coc-rust-analyzer', 'coc-sh']
 
 " Remap keys for applying codeAction to the current line.
 nmap <leader>ac  <Plug>(coc-codeaction)
