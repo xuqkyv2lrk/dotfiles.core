@@ -408,7 +408,7 @@ function select_desktop_interface() {
 }
 
 function install_rust() {
-    echo -e "\n${YELLOW}Installing rust stable...${GREEN}"
+    echo -e "\n${MAGENTA}Installing ${BOLD}rustup${NC}"
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 
     . "${HOME}/.cargo/env"

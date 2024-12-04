@@ -61,6 +61,7 @@ packages:
   - dnsmasq
   - ebtables
   - libvirt
+  - openssl
   - qemu
   - virt-install
   - virt-manager
