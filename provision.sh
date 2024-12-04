@@ -125,17 +125,17 @@ EOF
 
             # Docker
             sudo dnf -y install dnf-plugins-core
-            sudo dnf config-manager addrepo --add-or-replace https://download.docker.com/linux/fedora/docker-ce.repo
+            sudo dnf config-manager addrepo --add-or-replace --from-repofile="https://download.docker.com/linux/fedora/docker-ce.repo"
             
             # kubectl
-            sudo bash -c "cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+            sudo tee /etc/yum.repos.d/kubernetes.repo > /dev/null << EOF
 [kubernetes]
 name=Kubernetes
 baseurl=https://pkgs.k8s.io/core:/stable:/v1.31/rpm/
 enabled=1
 gpgcheck=1
 gpgkey=https://pkgs.k8s.io/core:/stable:/v1.31/rpm/repodata/repomd.xml.key
-EOF"
+EOF
 
             # RPMFusion Repository
             sudo dnf -y install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-"$(rpm -E %fedora)".noarch.rpm
