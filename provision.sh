@@ -418,6 +418,35 @@ function install_rust() {
     cargo install ncspot
 }
 
+function hardware_setup() {
+    local hardware
+    hardware=$(detect_hardware)
+
+    if [[ "${hardware}" != "unknown" ]]; then
+        echo -e "\n\e[33mDetected hardware: \e[1m${hardware}\e[0m"
+        configure_hardware_specific "${hardware}" "${distro}"
+    else
+        echo -e "\n${BLUE}No hardware-specific configurations needed${NC}"
+    fi
+}
+
+function post_install_configure() {
+    echo -e "\n\e[1;37mSetting up doom emacs...\e[0;32m"
+    doom sync
+
+    echo -e "\n\e[1;37mRebuilding cache for \e[1;33mbat\e[1;37m...\e[0;32m"
+    bat cache --build
+
+    echo -e "\n\e[1;37mInstall VIM plugins...\e[0;32m"
+    vim +'PlugInstall --sync' +qa
+
+    echo -e "\n\e[1;37mEnabling libvirtd for VM system management...\e[0;32m"
+    sudo systemctl enable --now libvirtd
+
+    echo -e "\n\e[0;33mUpdating shell for \e[1;35m$(whoami)\e[0;33m to \e[1;35mzsh\e[0;33m\e[0;32m"
+    sudo chsh -s "$(which zsh)" "$(whoami)"
+}
+
 # Function: main
 # Description: The main function that orchestrates the entire installation and configuration process.
 # Side effects:
@@ -449,35 +478,16 @@ function main() {
     echo -e "\n\e[1;37mPreparing to install binaries...\e[0m"
     install_binaries
 
-    # Detect hardware after package installation to ensure dmidecode is available
-    local hardware=$(detect_hardware)
-    echo -e "\n\e[33mDetected hardware: \e[1m${hardware}\e[0m"
-
     echo -e "\n\e[1;37mStowing dotfile configurations...\e[0;32m"
     stow -v */
 
     install_rust
 
-    echo -e "\n\e[1;37mSetting up doom emacs...\e[0;32m"
-    doom sync
-
-    echo -e "\n\e[1;37mRebuilding cache for \e[1;33mbat\e[1;37m...\e[0;32m"
-    bat cache --build
-
-    echo -e "\n\e[1;37mInstall VIM plugins...\e[0;32m"
-    vim +'PlugInstall --sync' +qa
-
-    echo -e "\n\e[1;37mEnabling libvirtd for VM system management...\e[0;32m"
-    sudo systemctl enable --now libvirtd
-
     install_tmux_plugins
 
     create_nm_dispatcher
 
-    configure_hardware_specific "${hardware}" "${distro}"
-
-    echo -e "\n\e[0;33mUpdating shell for \e[1;35m$(whoami)\e[0;33m to \e[1;35mzsh\e[0;33m\e[0;32m"
-    sudo chsh -s $(which zsh) "$(whoami)"
+    post_install_configure
 
     select_desktop_interface desktop_interface
 
