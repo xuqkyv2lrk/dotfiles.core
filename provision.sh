@@ -421,7 +421,7 @@ function main() {
     
     distro=$(detect_distro)
 
-    echo -e "\n${YELLOW}***************************************"
+    echo -e "\n${YELLOW}***************************************\n"
     echo -e "Detected distribution: ${BOLD}${distro}${NC}${YELLOW}"
     echo -e "\n***************************************${NC}"
     
