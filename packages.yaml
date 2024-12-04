@@ -5,12 +5,15 @@ packages:
   - thunderbird
 
   # Development Tools
+  - cmake
   - dmidecode
   - docker
   - emacs
+  - gcc-c++
   - go
   - graphviz
   - kubectl
+  - meson
   - nodejs
   - npm
   - python
@@ -74,6 +77,7 @@ packages:
 exceptions:
   arch:
     docker: docker docker-buildx docker-compose
+    gcc-c++: gcc
     man-db: man-db man-pages
     qemu: qemu-full
 
