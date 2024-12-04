@@ -125,7 +125,7 @@ EOF
 
             # Docker
             sudo dnf -y install dnf-plugins-core
-            sudo dnf config-manager addrepo --from-repofile="https://download.docker.com/linux/fedora/docker-ce.repo"
+            sudo dnf config-manager addrepo --overwrite --from-repofile="https://download.docker.com/linux/fedora/docker-ce.repo"
             
             # kubectl
             sudo tee /etc/yum.repos.d/kubernetes.repo > /dev/null << EOF
@@ -407,6 +407,17 @@ function select_desktop_interface() {
     done
 }
 
+function install_rust() {
+    echo -e "\n${YELLOW}Installing rust stable...${GREEN}"
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+
+    . "${HOME}/.cargo/env"
+    rustup default stable
+
+    echo -e "\n${MAGENTA}Installing ${BOLD}ncspot${NC}"
+    cargo install ncspot
+}
+
 # Function: main
 # Description: The main function that orchestrates the entire installation and configuration process.
 # Side effects:
@@ -445,10 +456,7 @@ function main() {
     echo -e "\n\e[1;37mStowing dotfile configurations...\e[0;32m"
     stow -v */
 
-    echo -e "\n\e[1;37mInstall rust stable...\e[0;32m"
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-    . "${HOME}/.cargo/env"
-    rustup default stable
+    install_rust
 
     echo -e "\n\e[1;37mSetting up doom emacs...\e[0;32m"
     doom sync

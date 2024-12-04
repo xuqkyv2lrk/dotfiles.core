@@ -6,8 +6,7 @@ packages:
 
   # Development Tools
   - dmidecode
-  - docker-buildx
-  - docker-compose
+  - docker
   - emacs
   - go
   - graphviz
@@ -31,7 +30,6 @@ packages:
   - mpc
   - mpd
   - ncmpcpp
-  - ncspot
 
   # Password Management
   - 1password
@@ -53,7 +51,7 @@ packages:
   - zoxide
 
   # System Utilities
-  - man
+  - man-db
   - rsync
   - wireguard-tools
   - wl-clipboard
@@ -72,19 +70,21 @@ packages:
 # Handle distribution-specific names
 exceptions:
   arch:
-    man: man-db man-pages
+    docker: docker docker-buildx docker-compose
+    man-db: man-db man-pages
     qemu: qemu-full
 
   fedora:
     bitwarden: https://github.com/bitwarden/clients/releases/download/desktop-v2024.11.1/Bitwarden-2024.11.1-x86_64.rpm
-    docker-buildx: docker-buildx-plugin
+    docker: docker docker-compose
     fd: fd-find
     python: python3
     qemu: qemu-kvm
 
   opensuse-tumbleweed:
+    docker: docker docker-buildx docker-compose
     firefox: MozillaFirefox
-    man: man-pages
+    man-db: man-pages
     python: python3
     shellcheck: ShellCheck
     thunderbird: MozillaThunderbird
