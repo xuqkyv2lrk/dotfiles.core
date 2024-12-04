@@ -43,6 +43,7 @@ packages:
   - fzf
   - git-delta
   - htop
+  - jq
   - ripgrep
   - stow
   - unzip
