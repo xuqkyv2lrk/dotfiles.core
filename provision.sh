@@ -125,7 +125,7 @@ EOF
 
             # Docker
             sudo dnf -y install dnf-plugins-core
-            sudo dnf config-manager addrepo --add-or-replace --from-repofile="https://download.docker.com/linux/fedora/docker-ce.repo"
+            sudo dnf config-manager addrepo --from-repofile="https://download.docker.com/linux/fedora/docker-ce.repo"
             
             # kubectl
             sudo tee /etc/yum.repos.d/kubernetes.repo > /dev/null << EOF
