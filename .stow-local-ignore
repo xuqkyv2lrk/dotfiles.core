@@ -1,7 +1,6 @@
 \.git
 \.gitignore
 \.gitmodules
-^docs
 
 ^/README.*
 ^/LICENSE.*
