@@ -420,7 +420,7 @@ function install_rust() {
     rustup default stable
 
     echo -e "\n${MAGENTA}Installing ${BOLD}ncspot${NC}"
-    cargo install ncspot
+    cargo install --locked ncspot
 }
 
 function hardware_setup() {
