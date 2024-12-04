@@ -62,7 +62,7 @@ packages:
   - ebtables
   - libvirt
   - openssl
-  - openssl-dev
+  - openssl-devel
   - qemu
   - virt-install
   - virt-manager
