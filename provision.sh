@@ -143,8 +143,9 @@ EOF
         "opensuse-tumbleweed")
             # 1Password
             sudo rpm --import https://downloads.1password.com/linux/keys/1password.asc
-            sudo zypper addrepo https://downloads.1password.com/linux/rpm/stable/x86_64 1password
-            
+            sudo zypper removerepo 1password
+            sudo zypper addrepo --refresh https://downloads.1password.com/linux/rpm/stable/x86_64 1password
+
             # kubectl
             sudo bash -c "cat <<EOF > /etc/zypp/repos.d/kubernetes.repo
 [kubernetes]
@@ -173,6 +174,10 @@ function install_package() {
     local package=$1
     local distro=$2
     local package_name=$(get_package_name $package $distro)
+
+    if [[ "${package_name}" == "skip" ]]; then
+        return
+    fi
 
     echo -e "\n\e[35mInstalling \e[1m${package_name}\e[0m"
 

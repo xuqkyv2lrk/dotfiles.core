@@ -87,6 +87,7 @@ exceptions:
     docker: docker docker-buildx docker-compose
     firefox: MozillaFirefox
     man-db: man-pages
+    mpc: skip
     python: python3
     shellcheck: ShellCheck
     thunderbird: MozillaThunderbird
