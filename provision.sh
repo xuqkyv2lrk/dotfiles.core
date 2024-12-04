@@ -125,7 +125,7 @@ EOF
 
             # Docker
             sudo dnf -y install dnf-plugins-core
-            sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+            sudo dnf config-manager addrepo --add-or-replace https://download.docker.com/linux/fedora/docker-ce.repo
             
             # kubectl
             sudo bash -c "cat <<EOF > /etc/yum.repos.d/kubernetes.repo
@@ -138,7 +138,7 @@ gpgkey=https://pkgs.k8s.io/core:/stable:/v1.31/rpm/repodata/repomd.xml.key
 EOF"
 
             # RPMFusion Repository
-            sudo dnf -y install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
+            sudo dnf -y install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-"$(rpm -E %fedora)".noarch.rpm
             ;;
         "opensuse-tumbleweed")
             # 1Password
@@ -416,13 +416,17 @@ function select_desktop_interface() {
 #   - Detects hardware and applies specific configurations
 #   - Configures the system and installs dotfiles
 function main() {
-    local distro=$(detect_distro)
+    local distro
     local desktop_interface
+    
+    distro=$(detect_distro)
 
-    echo -e "\e[33mDetected distribution: \e[1m${distro}\e[0m"
-
+    echo -e "\n${YELLOW}***************************************"
+    echo -e "Detected distribution: ${BOLD}${distro}${NC}${YELLOW}"
+    echo -e "\n***************************************${NC}"
+    
     echo -e "\n\e[1;37mConfiguring additional repositories...\e[0m"
-    install_repos $distro
+    install_repos "${distro}"
     
     echo -e "\n\e[1;37mPreparing to install packages...\e[0m"
     while IFS= read -r package; do
