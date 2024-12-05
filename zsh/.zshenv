@@ -1,4 +1,4 @@
-# shellcheck disable=SC2155
+#!/usr/bin/env zsh
 
 # ****
 # ENV Variables
@@ -35,25 +35,16 @@ export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#585b70,bg=none,bold"
 #**********
 # PATHS
 #**********
-if [[ -z "$TMUX" ]]; then
-    path=("$HOME/.local/bin" /usr/local/{bin,sbin} $path)
-    path+=("$HOME/.emacs.d/bin" "$HOME/bin" "$HOME/.npm-global/bin")
-    path+=("$GOPATH/bin")
-    
-    if [[ $(uname -s) == "Darwin" ]]; then
-        path=("/opt/homebrew/bin" $path)
-        
-        if [ -d "/opt/homebrew/opt/ruby/bin" ]; then
-            path=("$(gem environment gemdir)/bin" "/opt/homebrew/opt/ruby/bin" $path)
-        fi
-    fi
-fi
-
-# Remove duplicates paths
-#typeset -U path
-
+typeset -U path
+# system binaries
+path=("/sbin" $path)
+# emacs
+path=("${HOME}/.emacs.d/bin" $path)
 # Rust
 . "$HOME/.cargo/env"
 
+#**********
+# Evaluations
+#**********
 eval "$(zoxide init zsh)"
 eval "$(direnv hook zsh)"
