@@ -1,8 +1,8 @@
 alias work="cd ${WORK}"
 alias projects="cd ${WORK}/projects"
 alias notes="cd ${NOTES}"
-alias dots="cd ${DOTFILES}"
-alias cdots="cd .dotfiles.core"
+alias cdots="cd ${COREDOTS}"
+alias didots="cd ${DIDOTS}"
 
 alias zshconfig="${EDITOR} ${HOME}/.zshrc"
 alias envconfig="${EDITOR} ${HOME}/.zshenv"
@@ -46,8 +46,6 @@ compdef __start_kubectl k
 # gnome
 # ****
 alias gmpv="gnome-session-inhibit mpv ${1}"
-alias gnomedump="echo "Saving Gnome configuration to ${DOTFILES}/_deskmod/gnome/gnome-config"; dconf dump / >! ${DOTFILES}/_deskmod/gnome/gnome-config"
-alias gnomeload="echo "Loading Gnome configuration from ${DOTFILES}/_deskmod/gnome/gnome-config"; dconf load / < ${DOTFILES}/_deskmod/gnome/gnome-config"
 
 # ****
 # dotfiles git command

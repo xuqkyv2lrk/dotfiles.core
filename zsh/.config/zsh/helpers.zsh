@@ -197,3 +197,59 @@ function genuser() {
         }
     }'
 }
+
+#***
+# GNOME
+#***
+# Define the categories array outside the functions
+GNOME_CATEGORIES=(
+    "/org/gnome/desktop/interface/:interface.ini"
+    "/org/gnome/desktop/wm/:wm.ini"
+    "/org/gnome/nautilus/:nautilus.ini"
+    "/org/gnome/desktop/input-sources/:input-sources.ini"
+    "/org/gnome/settings-daemon/plugins/:plugins.ini"
+    "/org/gnome/shell/extensions/:extensions.ini"
+)
+
+function gnomeexport() {
+    local output_dir
+    
+    output_dir="${1:-${DIDOTS}/gnome/settings}"
+
+    if [[ ! -d "${output_dir}" ]]; then
+        mkdir -p "${output_dir}" || { echo "Failed to create directory ${output_dir}"; return 1; }
+    fi
+
+    for category in "${GNOME_CATEGORIES[@]}"; do
+        IFS=':' read -r dconf_path file <<< "${category}"
+        dconf dump "${dconf_path}" > "${output_dir}/${file}"
+        echo "Exported ${dconf_path} to ${output_dir}/${file}"
+    done
+
+    echo -e "\nGNOME settings exported to ${output_dir}"
+}
+
+function gnomeimport() {
+    local input_dir
+
+    input_dir="${1:-${DIDOTS}/gnome/settings}"
+
+    if [ ! -d "${input_dir}" ]; then
+        echo "Error: Directory ${input_dir} does not exist"
+        return 1
+    fi
+
+    # Import each category from its corresponding file
+    for category in "${GNOME_CATEGORIES[@]}"; do
+        IFS=':' read -r dconf_path file <<< "${category}"
+        if [ -f "${input_dir}/${file}" ]; then
+            dconf load "${dconf_path}" < "${input_dir}/${file}"
+            echo "Imported ${input_dir}/${file} to $dconf_path"
+        else
+            echo "Warning: ${file} not found in ${input_dir}"
+        fi
+    done
+
+    echo -e "\nGNOME settings imported from ${input_dir}"
+    echo -e "You may need to log out and back in for all changes to take effect."
+}
