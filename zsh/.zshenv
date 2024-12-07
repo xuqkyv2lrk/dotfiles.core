@@ -3,6 +3,9 @@
 # ****
 # ENV Variables
 # ****
+export XDG_CONFIG_HOME="${HOME}/.config"
+export XDG_CACHE="${HOME}/.cache"
+export XDG_DATA_HOME="${HOME}/.local/share"
 export DISTRO=$(. /etc/os-release && echo ${ID})
 export SHELL="$(which zsh)"
 export WORK="${HOME}/work"
