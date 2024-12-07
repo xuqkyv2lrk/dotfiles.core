@@ -17,7 +17,6 @@ packages:
   - nodejs
   - npm
   - python
-  - ruby
   - shellcheck
   - tmux
   - vim
