@@ -1,5 +1,5 @@
 .DS_Store
-error.log
+*.log
 vim/.vim/**/plugged
 tmux/.tmux/**/plugins
 ncspot/.config/ncspot/*
