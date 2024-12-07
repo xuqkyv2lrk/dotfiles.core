@@ -199,7 +199,7 @@ function install_package() {
 
 # Function: install_binaries
 # Description: Installs binary packages that are not available through standard package managers.
-# Side effects: Installs aws-cli and oh-my-posh if not already present
+# Side effects: Installs aws-cli, dyff, oh-my-posh, tfenv, and doom emacs if not already present.
 function install_binaries() {
     local binary_installed=false
 
@@ -412,6 +412,9 @@ function select_desktop_interface() {
     done
 }
 
+# Function: install_rust
+# Description: Installs Rust and the ncspot package.
+# Side effects: Installs rustup, sets up the Rust environment, and installs ncspot.
 function install_rust() {
     echo -e "\n${MAGENTA}Installing ${BOLD}rustup${NC}"
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
@@ -423,6 +426,9 @@ function install_rust() {
     cargo install --locked ncspot
 }
 
+# Function: hardware_setup
+# Description: Detects hardware and applies specific configurations.
+# Side effects: Calls configure_hardware_specific if hardware is detected.
 function hardware_setup() {
     local hardware
     hardware=$(detect_hardware)
@@ -435,6 +441,9 @@ function hardware_setup() {
     fi
 }
 
+# Function: post_install_configure
+# Description: Performs post-installation configuration tasks.
+# Side effects: Sets up doom emacs, rebuilds bat cache, installs VIM plugins, enables libvirtd, and updates the user's shell to zsh.
 function post_install_configure() {
     echo -e "\n\e[1;37mSetting up doom emacs...\e[0;32m"
     doom sync
