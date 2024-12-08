@@ -32,6 +32,7 @@ packages:
   - mpc
   - mpd
   - ncmpcpp
+  - ncspot
 
   # Password Management
   - 1password
@@ -84,6 +85,7 @@ exceptions:
     bitwarden: https://github.com/bitwarden/clients/releases/download/desktop-v2024.11.1/Bitwarden-2024.11.1-x86_64.rpm
     docker: docker docker-compose
     fd: fd-find
+    ncspot: skip
     python: python3
     qemu: qemu-kvm
 
