@@ -39,6 +39,9 @@ export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#585b70,bg=none,bold"
 # PATHS
 #**********
 typeset -U path
+# user binaries
+path=("${HOME}/bin" $path)
+path=("${HOME}/.local/bin" $path)
 # system binaries
 path=("/sbin" $path)
 # emacs
