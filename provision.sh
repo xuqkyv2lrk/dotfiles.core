@@ -423,7 +423,7 @@ function install_rust() {
     rustup default stable
 
     echo -e "\n${MAGENTA}Installing ${BOLD}ncspot${NC}"
-    cargo install --locked ncspot
+    cargo install --locked --root "${HOME}" ncspot
 }
 
 # Function: hardware_setup
