@@ -214,7 +214,7 @@ GNOME_CATEGORIES=(
 function gnomeexport() {
     local output_dir
     
-    output_dir="${1:-${DIDOTS}/gnome/settings}"
+    output_dir="${1:-${DIDOTS}/gnome/_settings}"
 
     if [[ ! -d "${output_dir}" ]]; then
         mkdir -p "${output_dir}" || { echo "Failed to create directory ${output_dir}"; return 1; }
@@ -232,7 +232,7 @@ function gnomeexport() {
 function gnomeimport() {
     local input_dir
 
-    input_dir="${1:-${DIDOTS}/gnome/settings}"
+    input_dir="${1:-${DIDOTS}/gnome/_settings}"
 
     if [ ! -d "${input_dir}" ]; then
         echo "Error: Directory ${input_dir} does not exist"
