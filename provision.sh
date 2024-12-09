@@ -80,6 +80,27 @@ function get_package_name() {
     echo "$package_name"
 }
 
+function system_update() {
+    local distro=$1
+
+    echo -e "\n\e[35Updating \e[1m${distro}\e[0m"
+
+    case "${distro}" in
+        "arch")
+            yay -Syu --noconfirm
+            ;;
+        "fedora")
+            sudo dnf update -y
+            ;;
+        "opensuse-tumbleweed")
+            sudo zypper dup -y
+            ;;
+        *)
+            echo "Unsupported distribution: ${distro}"
+            ;;
+    esac
+}
+
 # Function: install_repos
 # Description: Installs additional repositories based on the detected distribution.
 # Parameters:
@@ -88,7 +109,7 @@ function get_package_name() {
 function install_repos() {
     local distro=$1
 
-    case $distro in
+    case "${distro}" in
         "arch")
             # Install yay if not already installed
             # Not a repo, but a helper for the AUR repository
@@ -475,6 +496,8 @@ function main() {
     echo -e "\n${YELLOW}***************************************\n"
     echo -e "Detected distribution: ${BOLD}${distro}${NC}${YELLOW}"
     echo -e "\n***************************************${NC}"
+
+    system_update "${distro}"
     
     echo -e "\n\e[1;37mConfiguring additional repositories...\e[0m"
     install_repos "${distro}"
