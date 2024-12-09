@@ -87,7 +87,7 @@ function system_update() {
 
     case "${distro}" in
         "arch")
-            yay -Syu --noconfirm
+            sudo pacman -Syu --noconfirm
             ;;
         "fedora")
             sudo dnf update -y
