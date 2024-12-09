@@ -83,7 +83,7 @@ function get_package_name() {
 function system_update() {
     local distro=$1
 
-    echo -e "\n\e[35Updating \e[1m${distro}\e[0m"
+    echo -e "\n${BLUE}Updating ${BOLD}${distro}${NC}"
 
     case "${distro}" in
         "arch")
