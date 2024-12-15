@@ -371,16 +371,16 @@ EOF
                     sudo pacman-key --finger 8F654886F17D497FEFE3DB448B15A6B0E9A3FA35
                     sudo pacman-key --lsign-key 8F654886F17D497FEFE3DB448B15A6B0E9A3FA35
                     sudo pacman-key --finger 8F654886F17D497FEFE3DB448B15A6B0E9A3FA35
-                    sudo tee -a /etc/pacman.conf << EOF
-[g14]
-Server = https://arch.asus-linux.org
-EOF
+		    
+                    if ! grep -q "^\[g14\]" "/etc/pacman.conf"; then
+                        echo -e "\n[g14]\nServer = https://arch.asus-linux.org" | sudo tee -a /etc/pacman.conf > /dev/null 
+                        yay -Syu
+                    fi 
+                        
+                    sudo pacman -S --noconfirm asusctl supergfxctl rog-control-center
 
-                    yay -Syu
-                    yay -S --noconfirm asusctl supergfxctl rog-control-center
-
-                    sudo systemctl enable --now asusd
-                    sudo systemctl enable --now supergfxd
+                    sudo systemctl enable asusd
+                    sudo systemctl enable supergfxd
                     ;;
                 "fedora")
                     echo -e "\n${BLUE}Installing packages for ${BOLD}ASUS ROG Linux${NC}"

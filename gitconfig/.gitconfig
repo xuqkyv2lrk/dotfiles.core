@@ -34,4 +34,4 @@
     path = ~/.gitconfig-codeberg
 
 [pull]
-	rebase = false
+    rebase = false
