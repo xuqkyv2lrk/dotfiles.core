@@ -366,33 +366,49 @@ EOF
             # Install ROG-specific packages
             case "${distro}" in
                 "arch")
-                    echo -e "\n\e[1;37mInstalling ROG-specific packages from AUR...\e[0;32m"
+                    echo -e "\n${BLUE}Installing packages for ${BOLD}ASUS ROG Linux${NC}"
+                    sudo pacman-key --recv-keys 8F654886F17D497FEFE3DB448B15A6B0E9A3FA35
+                    sudo pacman-key --finger 8F654886F17D497FEFE3DB448B15A6B0E9A3FA35
+                    sudo pacman-key --lsign-key 8F654886F17D497FEFE3DB448B15A6B0E9A3FA35
+                    sudo pacman-key --finger 8F654886F17D497FEFE3DB448B15A6B0E9A3FA35
+                    sudo tee -a /etc/pacman.conf << EOF
+[g14]
+Server = https://arch.asus-linux.org
+EOF
+
+                    yay -Syu
                     yay -S --noconfirm asusctl supergfxctl rog-control-center
+
                     sudo systemctl enable --now asusd
                     sudo systemctl enable --now supergfxd
                     ;;
                 "fedora")
-                    echo -e "\n\e[1;37mInstalling ROG-specific packages for Fedora...\e[0;32m"
+                    echo -e "\n${BLUE}Installing packages for ${BOLD}ASUS ROG Linux${NC}"
                     # Add COPR repository for ROG packages
                     sudo dnf copr enable -y lukenukem/asus-linux
-                    sudo dnf install -y asusctl supergfxctl rog-control-center kernel-devel
+                    sudo dnf update -y
+
+                    sudo dnf install -y asusctl supergfxctl asusctl-rog-gui
+
                     sudo systemctl enable --now asusd
                     sudo systemctl enable --now supergfxd
                     ;;
                 "opensuse-tumbleweed")
-                    echo -e "\n\e[1;37mInstalling ROG-specific packages for openSUSE...\e[0;32m"
+                    echo -e "\n${BLUE}Installing packages for ${BOLD}ASUS ROG Linux${NC}"
                     # Add hardware:asus repository
-                    sudo zypper addrepo -f https://download.opensuse.org/repositories/hardware:/asus/openSUSE_Tumbleweed/ hardware:asus
-                    sudo zypper --gpg-auto-import-keys refresh
-                    sudo zypper install -y asusctl supergfxctl rog-control-center
+                    sudo zypper ar --priority 50 --refresh https://download.opensuse.org/repositories/home:/luke_nukem:/asus/openSUSE_Tumbleweed/ asus-linux
+
+                    sudo zypper rm -y suse-prime
+                    sudo zypper install -y asusctl supergfxctl asusctl-rog-gui
+
                     sudo systemctl enable --now asusd
                     sudo systemctl enable --now supergfxd
                     ;;
                 *)
-                    echo -e "\n\e[1;33mWarning: ROG-specific packages are not configured for this distribution\e[0m"
+                    echo -e "\n${YELLOW}Warning: ROG-specific packages are not configured for this distribution${NC}"
                     ;;
             esac
-            echo -e "\n\e[1;37mROG packages installed. You can configure your device using ROG Control Center.\e[0m"
+            echo -e "\n${BLUE}ROG packages installed. You can configure your device using ROG Control Center.${NC}"
             ;;
             
         *)
@@ -520,6 +536,8 @@ function main() {
     install_tmux_plugins
 
     create_nm_dispatcher
+
+    hardware_setup
 
     post_install_configure
 
