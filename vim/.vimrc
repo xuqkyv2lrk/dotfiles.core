@@ -57,6 +57,9 @@ let g:lightline = { 'colorscheme': 'catppuccin_mocha' }
 let g:palenight_terminal_italics=1
 let g:embark_terminal_italics = 1
 
+" Enable search highlight
+set hlsearch
+
 " Change comment color
 highlight Comment ctermfg=245
 highlight Identifir ctermfg=150

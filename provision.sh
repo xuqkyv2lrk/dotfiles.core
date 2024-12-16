@@ -428,7 +428,7 @@ function select_desktop_interface() {
         case $choice in
             "Yes")
                 echo -e "\n${BLUE}${BOLD}Please select a desktop interface:${NC}"
-                mapfile -t options < <(curl -sSL ${DIREPO_RAW}/packages.yaml | yq -e '.desktop_packages | keys | .[]')
+                mapfile -t options < <(curl -sSL ${DIREPO_RAW}/packages.yaml | yq -e '.desktop_packages | keys | .[]' | tr -d '"')
                 select de in "${options[@]}"; do
                     if [[ -n "$de" ]]; then
                         eval "$__choice"="${de}"
@@ -451,7 +451,7 @@ function select_desktop_interface() {
 
 # Function: install_rust
 # Description: Installs Rust and the ncspot package.
-# Side effects: Installs rustup, sets up the Rust environment, and installs ncspot.
+# Side effects: Installs rustup, sets up the Rust environment.
 function install_rust() {
     echo -e "\n${MAGENTA}Installing ${BOLD}rustup${NC}"
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
