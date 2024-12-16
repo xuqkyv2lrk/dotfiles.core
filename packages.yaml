@@ -42,6 +42,7 @@ packages:
   - bat
   - direnv
   - eza
+  - fastfetch
   - fd
   - fzf
   - git-delta
