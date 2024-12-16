@@ -55,6 +55,7 @@ packages:
   - zoxide
 
   # System Utilities
+  - bluetooth
   - man-db
   - rsync
   - wireguard-tools
@@ -76,12 +77,14 @@ packages:
 # Handle distribution-specific names
 exceptions:
   arch:
+    bluetooth: bluez bluez-utils
     docker: docker docker-buildx docker-compose
     gcc-c++: gcc
     man-db: man-db man-pages
     qemu: qemu-full
 
   fedora:
+    bluetooth: bluez
     bitwarden: https://github.com/bitwarden/clients/releases/download/desktop-v2024.11.1/Bitwarden-2024.11.1-x86_64.rpm
     docker: docker docker-compose
     fd: fd-find
@@ -90,6 +93,7 @@ exceptions:
     qemu: qemu-kvm
 
   opensuse-tumbleweed:
+    bluetooth: bluez
     docker: docker docker-buildx docker-compose
     firefox: MozillaFirefox
     man-db: man-pages
