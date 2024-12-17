@@ -201,7 +201,6 @@ function genuser() {
 #***
 # GNOME
 #***
-# Define the categories array outside the functions
 GNOME_CATEGORIES=(
     "/org/gnome/desktop/interface/:interface.ini"
     "/org/gnome/desktop/wm/:wm.ini"
