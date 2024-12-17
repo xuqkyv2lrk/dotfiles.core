@@ -45,3 +45,9 @@ plug "zsh-users/zsh-syntax-highlighting"
 if [ -z "$SSH_CONNECTION" ] && [ "$(tty)" != "/dev/tty1" ]; then
     eval "$(oh-my-posh init zsh --config ${HOME}/.config/ohmyposh/lean.yaml)"
 fi
+
+# ****
+# Trailing New Line
+# Make a magenta block that is three spaces in length, instead of the %
+# ****
+PROMPT_EOL_MARK='%K{magenta} %k'
