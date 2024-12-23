@@ -99,6 +99,7 @@ exceptions:
     firefox: MozillaFirefox
     man-db: man-pages
     mpc: skip
+    ncspot: skip
     python: python3
     shellcheck: ShellCheck
     thunderbird: MozillaThunderbird
