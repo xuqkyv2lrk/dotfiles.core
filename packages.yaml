@@ -57,6 +57,7 @@ packages:
 
   # System Utilities
   - bluetooth
+  - linux-firmware
   - man-db
   - rsync
   - wireguard-tools
@@ -97,6 +98,7 @@ exceptions:
     bluetooth: bluez
     docker: docker docker-buildx docker-compose
     firefox: MozillaFirefox
+    linux-firmware: kernel-firmware
     man-db: man-pages
     mpc: skip
     ncspot: skip

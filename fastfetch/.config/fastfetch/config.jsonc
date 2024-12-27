@@ -3,8 +3,8 @@
   "logo": {
     "type": "auto",
     "color": {
-      "1": "green",
-      "2": "blue",
+      "1": "blue",
+      "2": "white",
     }
   },
   "modules": [
