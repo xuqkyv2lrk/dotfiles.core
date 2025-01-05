@@ -51,3 +51,20 @@ fi
 # Make a magenta block that is three spaces in length, instead of the %
 # ****
 PROMPT_EOL_MARK='%K{magenta} %k'
+
+zle-line-init() {
+    zle -K viins
+    echo -n "${${KEYMAP/vicmd/}/(main|viins)/}"
+}
+
+zle -N zle-line-init
+
+# Remove newline from pasted text
+zle_bracketed_paste() {
+    local paste_content
+    zle .$WIDGET -N paste_content
+    paste_content="${paste_content%$'\n'}"
+    LBUFFER+="$paste_content"
+}
+
+zle -N bracketed-paste zle_bracketed_paste

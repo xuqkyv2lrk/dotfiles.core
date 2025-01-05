@@ -59,6 +59,7 @@ packages:
   - bluetooth
   - linux-firmware
   - man-db
+  - openresolv
   - rsync
   - wireguard-tools
   - wl-clipboard
