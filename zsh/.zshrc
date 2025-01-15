@@ -68,3 +68,10 @@ zle_bracketed_paste() {
 }
 
 zle -N bracketed-paste zle_bracketed_paste
+
+#**********
+# Evaluations
+#**********
+eval "$(zoxide init zsh)"
+eval "$(direnv hook zsh)"
+eval "$(atuin init zsh)"

@@ -490,9 +490,12 @@ function post_install_configure() {
 
     echo -e "\n\e[1;37mEnabling libvirtd for VM system management...\e[0;32m"
     sudo systemctl enable --now libvirtd
+    
+    echo -e "\n\e[1;37mInstalling Atuin...\e[0;32m"
+    curl --proto '=https' --tlsv1.2 -LsSf https://github.com/atuinsh/atuin/releases/latest/download/atuin-installer.sh | sh
 
     echo -e "\n\e[0;33mUpdating shell for \e[1;35m$(whoami)\e[0;33m to \e[1;35mzsh\e[0;33m\e[0;32m"
-    sudo chsh -s "$(which zsh)" "$(whoami)"
+    sudo chsh -s "/bin/zsh" "$(whoami)"
 }
 
 # Function: main

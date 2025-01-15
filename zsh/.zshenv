@@ -47,10 +47,6 @@ path=("/sbin" $path)
 # emacs
 path=("${HOME}/.emacs.d/bin" $path)
 # Rust
-. "$HOME/.cargo/env"
-
-#**********
-# Evaluations
-#**********
-eval "$(zoxide init zsh)"
-eval "$(direnv hook zsh)"
+. "${HOME}/.cargo/env"
+# Atuin
+. "${HOME}/.atuin/bin/env"
