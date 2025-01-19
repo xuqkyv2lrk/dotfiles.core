@@ -59,6 +59,7 @@ let g:embark_terminal_italics = 1
 
 " Enable search highlight
 set hlsearch
+nnoremap <silent> <CR> :nohlsearch<CR><CR>
 
 " Change comment color
 highlight Comment ctermfg=245
