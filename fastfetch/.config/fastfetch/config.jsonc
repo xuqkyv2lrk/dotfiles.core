@@ -1,27 +1,91 @@
 {
   "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
   "logo": {
-    "type": "auto",
+    "type": "file",
+    "source": "${XDG_CONFIG_HOME:-$HOME/.config}/fastfetch/logos/${DISTRO}.txt",
+  },
+  "display": {
+    "separator": " // ",
     "color": {
-      "1": "blue",
-      "2": "white",
-    }
+        "separator": "blue",
+        "keys": "magenta"
+    },
   },
   "modules": [
     "break",
-    "os",
-    "kernel",
-    "uptime",
-    "packages",
-    "shell",
-    "de",
-    "wm",
-    "wmtheme",
-    "font",
-    "theme",
-    "terminal",
-    "terminalfont",
     "break",
-    "colors",
+    {
+      "type": "uptime",
+      "key": "  Uptime",
+    },
+    "break",
+    {
+      "type": "os",
+      "key": "  OS",
+      "format": "{2}",
+    },
+    {
+      "type": "kernel",
+      "key": "  Kernel",
+      "format": "{2}",
+    },
+    {
+      "type": "packages",
+      "key": "  Packages",
+    },
+    {
+      "type": "display",
+      "key": "  Display",
+      "format": "{1}x{2} @ {3}Hz [{7}]",
+    },
+    {
+      "type": "terminal",
+      "key": "  Terminal",
+    },
+    {
+      "type": "shell",
+      "key": "  Shell",
+      "format": "{1} {4}",
+    },
+    {
+      "type": "de",
+      "key": "  DE",
+      "format": "{1}",
+    },
+    {
+      "type": "wm",
+      "key": "  WM",
+      "format": "{2} ({3})",
+    },
+    "break",
+    {
+      "type": "cpu",
+      "key": "  CPU",
+    },
+    {
+      "type": "gpu",
+      "key": "  GPU",
+    },
+    {
+      "type": "gpu",
+      "format": "{3}",
+      "key": "  GPU Driver",
+    },
+    {
+      "type": "command",
+      "key": "  OS Age ",
+      "text": "birth_install=$(stat -c %W /); current=$(date +%s); time_progression=$((current - birth_install)); days_difference=$((time_progression / 86400)); echo $days_difference days"
+    },
+    "break",
+    {
+      "type": "colors",
+      "paddingLeft": 22,
+      "symbol": "circle",
+    },
+    //{
+    //  "type": "custom",
+    //  "format": "╔═══════════════════⋆⋆╝      ✪      ╚⋆⋆═══════════════════╗"
+    //},
+    "break"
   ]
 }
