@@ -33,7 +33,7 @@ blocks:
         foreground: "p:gray"
         background: transparent
         template: |-
-          {{ if .UpstreamIcon }} {{ .UpstreamIcon }}{{ end }}{{ .HEAD }}
+          {{ if .UpstreamIcon }} {{ .UpstreamIcon }}{{ end }} {{ .HEAD }}
           {{- if .StashCount }} *{{ .StashCount }}{{ end }}
           {{- if .Working.Changed }}
             {{- if or (.Working.Modified) (.Working.Deleted) }} !{{ add (.Working.Modified) (.Working.Deleted) }}{{ end }}
