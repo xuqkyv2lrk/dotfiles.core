@@ -152,7 +152,7 @@
        ;;ocaml             ; an objective camel
        (org 
        ;  +pretty
-       ;   +roam2
+          +roam2
        ;  +journal
        ;  +dragndrop
        ;  +present
