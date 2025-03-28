@@ -27,8 +27,8 @@
 [includeIf "hasconfig:remote.*.url:gitlab:*/**"]
     path = ~/.gitconfig-gitlab
 
-[includeIf "hasconfig:remote.*.url:gh:*/**"]
-    path = ~/.gitconfig-gh
+[includeIf "hasconfig:remote.*.url:github:*/**"]
+    path = ~/.gitconfig-github
 
 [includeIf "hasconfig:remote.*.url:codeberg:*/**"]
     path = ~/.gitconfig-codeberg
