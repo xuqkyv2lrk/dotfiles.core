@@ -87,23 +87,15 @@ exceptions:
     man-db: man-db man-pages
     qemu: qemu-full
 
-  fedora:
-    bluetooth: bluez
-    bitwarden: https://github.com/bitwarden/clients/releases/download/desktop-v2024.11.1/Bitwarden-2024.11.1-x86_64.rpm
-    docker: docker docker-compose
+  ubuntu:
+    go: golang-go
+    gcc-c++: g++
+    python: python3
     fd: fd-find
+    docker: docker.io docker-compose
+    libvirt: libvirt-daemon-system libvirt-clients
+    openresolv: skip
+    openssl-devel: libssl-dev
     ncspot: skip
-    python: python3
-    qemu: qemu-kvm
-
-  opensuse-tumbleweed:
-    bluetooth: bluez
-    docker: docker docker-buildx docker-compose
-    firefox: MozillaFirefox
-    linux-firmware: kernel-firmware
-    man-db: man-pages
-    mpc: skip
-    ncspot: skip
-    python: python3
-    shellcheck: ShellCheck
-    thunderbird: MozillaThunderbird
+    qemu: qemu-system-x86 qemu-kvm
+    virt-install: virtinst

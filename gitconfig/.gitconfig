@@ -4,9 +4,30 @@
 [commit]
     gpgsign = true
 
+[core]
+    preloadindex = true
+    fscache = true
+    pager = delta
+
+[fetch]
+    prune = true
+    parallel = 4
+
+[pull]
+    ff = only
+
 [push]
     autosetupremote = true
     default = current
+    followTags = true
+
+[alias]
+    lg = log --graph --pretty=format:'%C(auto)%h%d %s %C(green)(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
+    co = checkout
+    br = branch
+    sw = switch
+    rs = restore
+    cleanup = "!git branch --merged | grep -v '\\*' | xargs -n 1 git branch -d"
 
 [merge]
     conflictstyle = zdiff3
@@ -18,11 +39,25 @@
     algorithm = histogram
     submodule = log
 
+[difftool]
+    prompt = false
+
 [submodule]
     recurse = true
 
 [status]
     submoduleSummary = true
+
+[pack]
+    deltaCacheSize = 2047m
+    threads = 1
+    windowMemory = 1g
+
+[delta]
+    features = "catppuccin-mocha"
+
+[include]
+    path = "~/.config/delta/catppuccin.gitconfig"
 
 [includeIf "hasconfig:remote.*.url:gitlab:*/**"]
     path = ~/.gitconfig-gitlab
@@ -32,6 +67,3 @@
 
 [includeIf "hasconfig:remote.*.url:codeberg:*/**"]
     path = ~/.gitconfig-codeberg
-
-[pull]
-    rebase = false
