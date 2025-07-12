@@ -57,7 +57,7 @@
     windowMemory = 1g
 
 [delta]
-    features = "catppuccin-mocha"
+    features = "catppuccin-mocha diff-so-fancy"
     true-color = always
     hyperlinks = true
     dark = true
