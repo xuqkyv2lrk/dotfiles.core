@@ -4,6 +4,16 @@ bold=$(tput bold)
 normal=$(tput sgr0)
 
 #***
+# rgj: Run ripgrep with JSON output and pretty-print results using delta.
+# Usage: rgj <pattern> [file ...]
+# Example: rgj TODO src/
+#***
+function rgj() {
+    rg --json "${@}" | delta
+}
+
+
+#***
 # Filesearch
 #***
 function f() { find . -iname "*$1*" "${@:2}"; }

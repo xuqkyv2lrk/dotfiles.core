@@ -9,6 +9,9 @@
     fscache = true
     pager = delta
 
+[interactive]
+    diffFilter = delta --color-only
+
 [fetch]
     prune = true
     parallel = 4
@@ -55,6 +58,12 @@
 
 [delta]
     features = "catppuccin-mocha"
+    true-color = always
+    hyperlinks = true
+    dark = true
+    side-by-side = true
+    line-numbers = true
+    navigate = true
 
 [include]
     path = "~/.config/delta/catppuccin.gitconfig"
