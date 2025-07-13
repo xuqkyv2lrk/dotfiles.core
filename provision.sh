@@ -160,6 +160,38 @@ function install_repos() {
   esac
 }
 
+# Function: install_foot_ubuntu
+# Description: Installs the latest Foot terminal emulator from source on Ubuntu,
+#              including all required build dependencies. Cleans up after install.
+# Side effects: Installs packages, builds foot, and installs terminfo.
+function install_foot_ubuntu() {
+  echo -e "\n${MAGENTA}Installing ${BOLD}foot${NC}"
+
+  # Install build dependencies
+  echo -e "${YELLOW}Installing build dependencies for Foot...${NC}"
+  sudo apt-get update
+  sudo apt-get install -y \
+    build-essential meson ninja-build pkg-config wayland-protocols \
+    libwayland-dev libxkbcommon-dev libpixman-1-dev libfcft-dev libutf8proc-dev \
+    libfontconfig1-dev libpam0g-dev scdoc git
+
+  # Clone and build Foot
+  echo -e "${YELLOW}Cloning Foot repository...${NC}"
+  git clone https://codeberg.org/dnkl/foot.git /tmp/foot
+  cd /tmp/foot
+
+  echo -e "${YELLOW}Building Foot...${NC}"
+  meson setup build
+  ninja -C build
+
+  echo -e "${GREEN}Installing Foot...${NC}"
+  sudo ninja -C build install
+
+  # Cleanup
+  cd -
+  rm -rf /tmp/foot
+}
+
 # Function: install_package
 # Description: Installs a specified package using the appropriate package manager for the distribution.
 # Parameters:
@@ -172,6 +204,12 @@ function install_package() {
   package_name=$(get_package_name "${package}" "${distro}")
 
   if [[ "${package_name}" == "skip" ]]; then
+    return
+  fi
+
+  # Special case for Foot on Ubuntu
+  if [[ "${package_name}" == "foot" && "${distro}" == "ubuntu" ]]; then
+    install_foot_ubuntu
     return
   fi
 
