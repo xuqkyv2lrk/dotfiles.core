@@ -12,15 +12,19 @@ NC="\033[0m"
 
 DIREPO_RAW="https://gitlab.com/wd2nf8gqct/dotfiles.di/-/raw/main"
 
+
 # Function: detect_distro
 # Description: Detects the Linux distribution of the current system.
-# Returns: The ID of the detected distribution (e.g., "arch", "ubuntu", "fedora", "opensuse-tumbleweed") or "unknown" if not detected.
-function detect_distro() {
+# Returns: The ID of the detected distribution ("arch", "ubuntu", "legacy", "unsupported", or "unknown").
+detect_distro() {
   if [ -f /etc/os-release ]; then
     . /etc/os-release
     case "${ID}" in
-      ubuntu|arch|fedora|opensuse-tumbleweed)
+      arch|ubuntu)
         echo "${ID}"
+        ;;
+      fedora|opensuse-tumbleweed)
+        echo "legacy"
         ;;
       *)
         echo "unsupported"
@@ -465,13 +469,13 @@ function main() {
   distro=$(detect_distro)
 
   # Legacy distros disclaimer and exit
-  if [[ "${distro}" == "fedora" || "${distro}" == "opensuse-tumbleweed" ]]; then
-    echo -e "${YELLOW}This distribution is no longer supported. Please use the 'legacy-bios' branch for best-effort support. No further updates will be provided for Fedora or openSUSE Tumbleweed.${NC}"
+  if [[ "${distro}" == "legacy" ]]; then
+    echo -e "\n${YELLOW}This distribution is no longer supported. Please use the ${BOLD}legacy-distros${NC}${YELLOW} branch for best-effort support. No further updates will be provided for ${BOLD}${distro}${NC}${YELLOW}.${NC}"
     exit 1
   fi
 
   if [[ "${distro}" != "arch" && "${distro}" != "ubuntu" ]]; then
-    echo -e "${RED}Unsupported distribution: ${distro}. Only Arch and Ubuntu are supported.${NC}"
+    echo -e "\n${RED}Unsupported distribution: ${distro}. Only Arch and Ubuntu are supported.${NC}"
     exit 1
   fi
 
