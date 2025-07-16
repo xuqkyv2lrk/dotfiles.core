@@ -12,6 +12,8 @@ NC="\033[0m"
 
 DIREPO_RAW="https://gitlab.com/wd2nf8gqct/dotfiles.di/-/raw/main"
 
+# Global variable to track PaperWM selection
+use_paperwm="false"
 
 # Function: detect_distro
 # Description: Detects the Linux distribution of the current system.
@@ -408,35 +410,66 @@ EOF
 }
 
 # Function: select_desktop_interface
-# Description: Prompts the user to select a desktop interface.
-# Parameters:
-#   $1 - A reference to store the selected desktop interface.
+# Description: On Ubuntu, prompts the user to apply a custom GNOME configuration or leave the current setup unchanged. On other distros, prompts for desktop interface selection.
 function select_desktop_interface() {
-  local __choice="${1}"
-  echo -e "\n${BLUE}${BOLD}Do you want to install a desktop interface?${NC}"
-  select choice in "Yes" "No"; do
-    case $choice in
-      "Yes")
-        echo -e "\n${BLUE}${BOLD}Please select a desktop interface:${NC}"
-        mapfile -t options < <(curl -sSL ${DIREPO_RAW}/packages.yaml | yq -e '.desktop_packages | keys | .[]' | tr -d '"')
-        select de in "${options[@]}"; do
-          if [[ -n "$de" ]]; then
-            eval "$__choice"="${de}"
-            return
-          else
-            echo -e "\n${RED}Invalid option. Please try again.${NC}\n"
-          fi
+    local __choice=$1
+    local distro
+    distro=$(detect_distro)
+    if [[ "$distro" == "ubuntu" ]]; then
+        # Check if the current desktop session is GNOME
+        if [[ "$XDG_CURRENT_DESKTOP" != *"GNOME"* && "$DESKTOP_SESSION" != "gnome" ]]; then
+            echo -e "\n${RED}Unsupported desktop environment detected.\nThis script supports only Ubuntu with GNOME desktop. Exiting.${NC}\n"
+            exit 1
+        fi
+        echo -e "\n${BLUE}${BOLD}You are running Ubuntu with GNOME.${NC}"
+        echo -e "${BLUE}How would you like to handle your GNOME desktop configuration?${NC}"
+        select choice in "Apply custom GNOME configuration" "Apply custom GNOME configuration with PaperWM" "Leave GNOME as it is"; do
+            case $choice in
+                "Apply custom GNOME configuration")
+                    eval "$__choice"="gnome"
+                    use_paperwm="false"
+                    return
+                    ;;
+                "Apply custom GNOME configuration with PaperWM")
+                    eval "$__choice"="gnome"
+                    use_paperwm="true"
+                    return
+                    ;;
+                "Leave GNOME as it is")
+                    printf "\nNo changes will be made to your GNOME desktop.\n"
+                    exit
+                    ;;
+                *)
+                    echo -e "\n${RED}Invalid option. Please try again.${NC}\n"
+                    ;;
+            esac
         done
-        ;;
-      "No")
-        printf "\nSkipping desktop interface installation.\n"
-        exit
-        ;;
-      *)
-        echo -e "\n${RED}Invalid option. Please try again.${NC}\n"
-        ;;
-    esac
-  done
+    else
+        echo -e "\n${BLUE}${BOLD}Do you want to install a desktop interface?${NC}"
+        select choice in "Yes" "No"; do
+            case $choice in
+                "Yes")
+                    echo -e "\n${BLUE}${BOLD}Please select a desktop interface:${NC}"
+                    mapfile -t options < <(curl -sSL ${DIREPO_RAW}/packages.yaml | yq -e '.desktop_packages | keys | .[]' | tr -d '"')
+                    select de in "${options[@]}"; do
+                        if [[ -n "$de" ]]; then
+                            eval "$__choice"="$de"
+                            return
+                        else
+                            echo -e "\n${RED}Invalid option. Please try again.${NC}\n"
+                        fi
+                    done
+                    ;;
+                "No")
+                    printf "\nSkipping desktop interface installation.\n"
+                    exit
+                    ;;
+                *)
+                    echo -e "\n${RED}Invalid option. Please try again.${NC}\n"
+                    ;;
+            esac
+        done
+    fi
 }
 
 # Function: install_rust
@@ -541,7 +574,7 @@ function main() {
   hardware_setup
   post_install_configure
   select_desktop_interface desktop_interface
-  curl -sSL "${DIREPO_RAW}/install.sh" | bash -s "${distro}" "${desktop_interface}"
+  curl -sSL "${DIREPO_RAW}/install.sh" | bash -s "${distro}" "${desktop_interface}" "${use_paperwm}"
 }
 
 main
