@@ -210,6 +210,7 @@ function install_package() {
   # Special case for Foot on Ubuntu
   if [[ "${package_name}" == "foot" && "${distro}" == "ubuntu" ]]; then
     install_foot_ubuntu
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y foot-terminfo
     return
   fi
 
