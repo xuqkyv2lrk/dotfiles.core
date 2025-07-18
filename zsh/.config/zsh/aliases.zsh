@@ -33,7 +33,7 @@ alias g="git"
 # zoxide
 # ****
 alias j="z"
-alias f="zi"
+alias x="zi"
 
 # ****
 # kuberenetes
