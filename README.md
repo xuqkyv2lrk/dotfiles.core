@@ -249,29 +249,29 @@ Beyond package managers, the system automatically installs:
 ## Package Categories
 
 ### Core Development Tools
-**Languages & Runtimes**: Python, Go, Node.js, Rust (via rustup)
-**Build Tools**: GCC, cmake, meson, make
-**Version Control**: Git with delta, git-delta for enhanced diffs
-**Containers**: Docker with BuildX and Compose
-**Cloud**: kubectl for Kubernetes, AWS CLI
+**Languages & Runtimes**: Python, Go, Node.js, Rust (via rustup)  
+**Build Tools**: GCC, cmake, meson, make  
+**Version Control**: Git with delta, git-delta for enhanced diffs  
+**Containers**: Docker with BuildX and Compose  
+**Cloud**: kubectl for Kubernetes, AWS CLI  
 
 ### System Utilities
-**File Management**: ranger (TUI), eza (modern ls), fd (find replacement)
-**Text Processing**: bat (cat replacement), ripgrep (grep replacement), jq/yq (JSON/YAML)
-**Shell Enhancement**: zsh, tmux, fzf (fuzzy finder), zoxide (cd replacement)
-**System Monitoring**: btop (htop replacement), fastfetch (system info)
+**File Management**: ranger (TUI), eza (modern ls), fd (find replacement)  
+**Text Processing**: bat (cat replacement), ripgrep (grep replacement), jq/yq (JSON/YAML)  
+**Shell Enhancement**: zsh, tmux, fzf (fuzzy finder), zoxide (cd replacement)  
+**System Monitoring**: btop (htop replacement), fastfetch (system info)  
 
 ### Media & Communication
-**Browsers**: Firefox with custom configuration
-**Email**: Thunderbird with optimized settings
-**Music**: MPD + ncmpcpp + cava for complete audio experience
-**Terminal**: foot (Wayland-native) with tmux integration
+**Browsers**: Firefox with custom configuration  
+**Email**: Thunderbird with optimized settings  
+**Music**: MPD + ncmpcpp + cava for complete audio experience  
+**Terminal**: foot (Wayland-native) with tmux integration  
 
 ### Security & Privacy
-**Password Managers**: 1Password and Bitwarden for comprehensive coverage
-**VPN**: WireGuard tools for secure networking
-**Firewall**: UFW for simplified iptables management
-**Development Security**: OpenSSL with development headers
+**Password Managers**: 1Password and Bitwarden for comprehensive coverage  
+**VPN**: WireGuard tools for secure networking  
+**Firewall**: UFW for simplified iptables management  
+**Development Security**: OpenSSL with development headers  
 
 ## Repository Structure
 
