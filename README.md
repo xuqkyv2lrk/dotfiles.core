@@ -9,8 +9,8 @@
 [![Codeberg Mirror](https://img.shields.io/badge/Codeberg-Mirror-2185D0.svg?logo=codeberg)](https://codeberg.org/iw8knmadd5/dotfiles.core)
 
 [![Arch Linux](https://img.shields.io/badge/Arch%20Linux-1793D1?logo=arch-linux&logoColor=fff&style=flat)](https://archlinux.org)
-[![Fedora](https://img.shields.io/badge/Fedora-294172?style=flat&logo=fedora&logoColor=white)](https://getfedora.org)
-[![openSUSE Tumbleweed](https://img.shields.io/badge/openSUSE-Tumbleweed-%2364B345?style=flat&logo=openSUSE&logoColor=white)](https://get.opensuse.org/tumbleweed/)
+[![Ubuntu](https://img.shields.io/badge/Ubuntu-E95420?style=flat&logo=ubuntu&logoColor=white)](https://ubuntu.com)
+
 </div>
 
 <br />
@@ -45,83 +45,113 @@ To ensure a smooth implementation:
 
 ## 📋 Table of Contents
 - [Overview](#overview)
-  - [Features](#features)
-  - [Prerequisites](#prerequisites)
 - [Getting Started](#getting-started)
-  - [Quick Start](#quick-start)
-  - [Repository Mirrors](#repository-mirrors)
 - [System Configuration](#system-configuration)
-  - [Distribution Support](#distribution-support)
-  - [Package Management](#package-management)
-  - [Additional Tools](#additional-tools)
 - [Automation Features](#automation-features)
-  - [Tool Installation](#tool-installation)
-  - [Environment Setup](#environment-setup)
-  - [Hardware Support](#hardware-support)
 - [Package Categories](#package-categories)
 - [Repository Structure](#repository-structure)
 - [License](#license)
 
 ## Overview
-A minimalist yet powerful dotfiles framework built around my personal development workflow. It provides automated system provisioning across my preferred Linux distributions, focusing on the tools and configurations I use daily.
 
-### Features
-- 🔍 Support for my primary Linux distributions:
-  - Arch Linux with AUR support via yay
-  - Fedora with RPM Fusion and specialized repositories
-  - openSUSE Tumbleweed with appropriate repositories
-- 📦 Curated selection of development tools and packages
-- 🛠️ My preferred development environment setup:
-  - Vim with custom plugin selection
-  - Doom Emacs configuration
-  - tmux with personalized settings
-  - Shell customization via Oh My Posh
-- 🌐 Location-aware timezone management
-- 💻 Hardware-specific support for:
-  - ThinkPad T480s
-  - ROG laptops
-- 🔒 Secure package management with verified sources
-- 🎨 Optional desktop interface installation
+A minimalist yet powerful dotfiles framework built around my personal development workflow. This setup provides automated system provisioning for Arch Linux and Ubuntu, focusing on the tools and configurations that power my daily development environment.
 
-### Prerequisites
-- Git
-- sudo privileges
-- One of the supported distributions:
-  - Arch Linux
-  - Fedora
-  - openSUSE Tumbleweed
+### Key Features
+
+**🚀 Streamlined Installation**
+- One-command setup for complete development environment
+- Automatic distribution detection and package management
+- Smart handling of distribution-specific package names and requirements
+
+**🛠️ Curated Development Tools**
+- Hand-picked selection of productivity tools and configurations
+- Modern replacements for traditional Unix utilities
+- Comprehensive development environment with multiple language support
+
+**🎯 Hardware-Aware Configuration**
+- Automatic hardware detection and optimization
+- Specific support for ThinkPad T480s and ROG laptops
+- Location-aware timezone management via NetworkManager
+
+**🔒 Security-First Approach**
+- Verified package sources and secure installation methods
+- Multiple password manager integrations
+- Proper system hardening configurations
+
+### Supported Systems
+
+| Distribution | Package Manager | AUR Support | Desktop Environment |
+|--------------|-----------------|-------------|-------------------|
+| **Arch Linux** | pacman + yay | ✅ Full AUR access | Optional selection |
+| **Ubuntu** | apt | ✅ PPAs + custom repos | GNOME with PaperWM option |
+
+> **Legacy Distribution Support**: Previous support for Fedora and openSUSE Tumbleweed has been moved to the `legacy-distros` branch. These distributions are no longer actively maintained.
 
 ## Getting Started
 
-### Quick Start
-1. Clone the repository:
+### Prerequisites
+- Git installed on your system
+- curl installed on your system
+- sudo privileges
+- One of the supported distributions (Arch Linux or Ubuntu)
+- Active internet connection for package downloads
+
+### Quick Installation
+
+1. **Clone the repository**:
    ```bash
-   # GitLab (primary)
-   git clone https://gitlab.com/wd2nf8gqct/dotfiles.core.git .dotfiles.core
-   cd .dotfiles.core
+   # Using GitLab (primary)
+   git clone https://gitlab.com/wd2nf8gqct/dotfiles.core.git ~/.dotfiles.core
+   cd ~/.dotfiles.core
    ```
 
-2. Review configurations:
+2. **Review the configuration** (optional but recommended):
    ```bash
-   # Review package selections
-   vim packages.yaml
+   # Check which packages will be installed
+   cat packages.yaml
+   
+   # Review the main provisioning script
+   less provision.sh
    ```
 
-3. Run the provisioning script:
+3. **Run the installation**:
    ```bash
    ./provision.sh
    ```
 
+The script will automatically:
+- Detect your distribution and hardware
+- Install required repositories and update the system
+- Install all configured packages with distribution-specific handling
+- Set up development tools and configurations
+- Configure your shell environment
+- Apply hardware-specific optimizations
+
+### Repository Mirrors
+
+| Platform | Purpose | URL |
+|----------|---------|-----|
+| **GitLab** | Primary repository | [gitlab.com/wd2nf8gqct/dotfiles.core](https://gitlab.com/wd2nf8gqct/dotfiles.core) |
+| **GitHub** | Mirror | [github.com/xuqkyv2lrk/dotfiles.core](https://github.com/xuqkyv2lrk/dotfiles.core) |
+| **Codeberg** | Mirror | [codeberg.org/iw8knmadd5/dotfiles.core](https://codeberg.org/iw8knmadd5/dotfiles.core) |
+
 ## System Configuration
 
-### Distribution Support
-Automatically detects and configures for:
-- **Arch Linux**: Uses pacman with yay for AUR support
-- **Fedora**: Uses dnf with RPM Fusion and specialized repositories
-- **openSUSE Tumbleweed**: Uses zypper with appropriate repository management
+### Distribution-Specific Features
 
-### Package Management
-Centralized package configuration via `packages.yaml` for managing packages across different distributions. Handles package name differences and special installation requirements:
+**Arch Linux**:
+- Automatic yay installation for AUR package management
+- Conflict resolution (e.g., iptables removal for ebtables compatibility)
+- ASUS ROG Linux repository integration for ROG hardware
+
+**Ubuntu**:
+- Custom repository setup for modern packages (1Password, kubectl, fastfetch)
+- Foot terminal compiled from source with full Wayland support
+- Bitwarden installation via direct .deb download (no Snap dependency)
+
+### Package Management System
+
+The `packages.yaml` file provides centralized package management with smart distribution-specific handling:
 
 ```yaml
 packages:
@@ -132,94 +162,152 @@ packages:
 exceptions:
   arch:
     docker: docker docker-buildx docker-compose
+    python: python
   
-  fedora:
+  ubuntu:
     python: python3
-    bitwarden: https://github.com/bitwarden/clients/releases/download/desktop-v2024.11.1/Bitwarden-2024.11.1-x86_64.rpm
-
-  opensuse-tumbleweed:
-    firefox: MozillaFirefox
-    python: python3
+    docker: docker.io docker-compose
+    fd: fd-find
 ```
 
-### Additional Tools
-Automated installation and configuration of:
-- AWS CLI
-- Oh My Posh
-- tfenv
-- dyff
-- Doom Emacs
-- Rust and cargo packages
-- Vim plugins
-- tmux plugin manager
+**Special Handling**:
+- Distribution-specific package names automatically resolved
+- Custom installation procedures for complex packages
+- Skip options for packages unavailable on certain distributions
+
+### Additional Tools Installation
+
+Beyond package managers, the system automatically installs:
+
+| Tool | Purpose | Installation Method |
+|------|---------|-------------------|
+| **AWS CLI** | Cloud management | Direct download + install |
+| **Oh My Posh** | Shell theming | Official installer script |
+| **tfenv** | Terraform version management | Git clone to ~/bin |
+| **dyff** | YAML diffing | GitHub release download |
+| **Doom Emacs** | Enhanced Emacs config | Git clone + setup |
+| **Atuin** | Shell history management | Official installer |
+| **diff-so-fancy** | Enhanced git diffs | Git clone to /usr/local/bin |
 
 ## Automation Features
 
-### Tool Installation
-- **Package Managers**: Automated setup of distribution-specific package managers
-- **Development Tools**: Installation of required development tools and runtimes
-- **Shell Configuration**: Automatic ZSH configuration with Oh My Posh
-- **Desktop Environment**: Optional installation of desktop environments
-
 ### Environment Setup
-Automated creation of working directory structure:
+
+**Directory Structure Creation**:
 ```
 ~/
-├── bin/           # User binaries
+├── bin/              # User binaries and scripts
 ├── notes/
-│   └── tome/     # Knowledge base
+│   └── tome/        # Personal knowledge base
 └── work/
-    ├── priming/  # Setup files
-    ├── projects/ # Active projects
-    └── sandbox/  # Testing area
+    ├── priming/     # System setup and configuration files
+    ├── projects/    # Active development projects
+    └── sandbox/     # Testing and experimentation area
 ```
 
-### Hardware Support
-- Automatic hardware detection for specific configurations
-- ThinkPad T480s optimizations (IR camera management)
-- ROG laptop support with distribution-specific packages
-- NetworkManager integration for location-aware timezone updates
+**Shell Configuration**:
+- ZSH as default shell with Oh My Posh theming
+- Atuin for enhanced shell history with sync capabilities
+- Custom aliases and functions via stow-managed dotfiles
+
+**Development Environment**:
+- Vim with vim-plug and curated plugin selection
+- Doom Emacs with personal configuration
+- tmux with plugin manager and custom keybindings
+- Git with delta for enhanced diffing and custom aliases
+
+### Hardware-Specific Optimizations
+
+**ThinkPad T480s**:
+- IR camera disabled via udev rules (privacy and power savings)
+- Power management optimizations
+
+**ASUS ROG Laptops** (Arch Linux only):
+- ASUS Linux repository integration
+- asusctl, supergfxctl, and ROG Control Center installation
+- Proper service enablement for hardware control
+
+**Universal Features**:
+- NetworkManager dispatcher for automatic timezone updates based on location
+- libvirtd setup for virtualization management
+- Bluetooth and wireless hardware support
+
+### Desktop Interface Integration
+
+**Ubuntu with GNOME**:
+- Detects existing GNOME installation and offers custom configuration options
+- Optional PaperWM installation for advanced tiling window management
+- Integrates with [dotfiles.di](https://gitlab.com/wd2nf8gqct/dotfiles.di) repository for full desktop theming
+
+**Arch Linux**:
+- Prompts for desktop interface installation preference
+- Delegates desktop environment setup to [dotfiles.di](https://gitlab.com/wd2nf8gqct/dotfiles.di) repository
+- Provides foundation for desktop customization and theming
+
+> **Note**: Desktop environment installation and theming is handled by the companion [dotfiles.di](https://gitlab.com/wd2nf8gqct/dotfiles.di) repository that focuses specifically on desktop interface customization and visual theming.
 
 ## Package Categories
 
-| Category                 | Primary Packages                                                                                                                    |
-|--------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
-| Browsers & Communication | firefox, foot, thunderbird                                                                                                           |
-| Development Tools        | cmake, docker, emacs, gcc-c++, go, graphviz, kubectl, meson, nodejs, python, shellcheck, tmux, vim                            |
-| Document Processing      | pandoc                                                                                                                               |
-| File Management         | ranger                                                                                                                               |
-| Media & Music           | cava, mpc, mpd, ncmpcpp                                                                                                              |
-| Password Management     | 1password, bitwarden                                                                                                                 |
-| Shell Utilities         | bat, direnv, eza, fd, fzf, git-delta, btop, jq, ripgrep, stow, unzip, wget, yq, zoxide                                              |
-| System Utilities        | man-db, rsync, wireguard-tools, wl-clipboard, zsh                                                                                    |
-| Virtualization          | dnsmasq, ebtables, libvirt, openssl, qemu, virt-install, virt-manager, virt-viewer, ufw                                              |
+### Core Development Tools
+**Languages & Runtimes**: Python, Go, Node.js, Rust (via rustup)
+**Build Tools**: GCC, cmake, meson, make
+**Version Control**: Git with delta, git-delta for enhanced diffs
+**Containers**: Docker with BuildX and Compose
+**Cloud**: kubectl for Kubernetes, AWS CLI
 
-> Note: Package names may vary by distribution. See `packages.yaml` for distribution-specific mappings.
+### System Utilities
+**File Management**: ranger (TUI), eza (modern ls), fd (find replacement)
+**Text Processing**: bat (cat replacement), ripgrep (grep replacement), jq/yq (JSON/YAML)
+**Shell Enhancement**: zsh, tmux, fzf (fuzzy finder), zoxide (cd replacement)
+**System Monitoring**: btop (htop replacement), fastfetch (system info)
+
+### Media & Communication
+**Browsers**: Firefox with custom configuration
+**Email**: Thunderbird with optimized settings
+**Music**: MPD + ncmpcpp + cava for complete audio experience
+**Terminal**: foot (Wayland-native) with tmux integration
+
+### Security & Privacy
+**Password Managers**: 1Password and Bitwarden for comprehensive coverage
+**VPN**: WireGuard tools for secure networking
+**Firewall**: UFW for simplified iptables management
+**Development Security**: OpenSSL with development headers
 
 ## Repository Structure
 
 ```
-.dotfiles.core
-├── bat           # Modern cat replacement configuration
-├── cava          # Console-based audio visualizer config
-├── docs          # Project documentation
-├── doom          # Doom Emacs configuration
-├── fonts         # Custom font files
-├── foot          # Modern terminal emulator config
-├── gitconfig     # Git configuration and aliases
-├── LICENSE       # BSD 3-Clause license
-├── ncmpcpp       # Music Player Client config
-├── ohmyposh      # Shell prompt customization
-├── packages.yaml # Package definitions and exceptions
-├── provision.sh  # Main system provisioning script
-├── ranger        # Terminal file manager config
-├── README.md     # Project documentation
-├── tmux          # Terminal multiplexer config
-├── vim           # Vim editor configuration
-└── zsh           # Z shell configuration and plugins
+.dotfiles.core/
+├── LICENSE               # BSD 3-Clause license
+├── README.md             # This documentation
+├── bat/                  # Modern cat replacement config
+├── btop/                 # System monitor configuration
+├── cava/                 # Audio visualizer settings
+├── delta/                # Git diff enhancer config
+├── doom/                 # Doom Emacs configuration
+├── dotfile.png           # Repository logo
+├── fastfetch/            # System info display config
+├── fonts/                # Custom font files
+├── foot/                 # Terminal emulator config
+├── gitconfig/            # Git aliases and settings
+├── ncmpcpp/              # Music player client config
+├── ncspot/               # Spotify terminal client config
+├── ohmyposh/             # Shell prompt themes
+├── packages.yaml         # Package definitions and exceptions
+├── provision.sh          # Main installation script
+├── ranger/               # File manager configuration
+├── tmux/                 # Terminal multiplexer setup
+├── vim/                  # Vim editor configuration
+└── zsh/                  # Z shell config and plugins
 ```
+
+**Configuration Management**: All configurations are managed via [GNU Stow](https://www.gnu.org/software/stow/), enabling easy symlinking and updates of dotfiles.
 
 ## License
 
-This project is licensed under the BSD 3-Clause License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **BSD 3-Clause License** - see the [LICENSE](LICENSE) file for complete details.
 
+---
+
+<div align="center">
+<strong>Built with ❤️ for productive development workflows</strong>
+</div>
