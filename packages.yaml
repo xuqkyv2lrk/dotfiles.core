@@ -81,7 +81,7 @@ packages:
 # Handle distribution-specific names
 exceptions:
   arch:
-    bluetooth: bluez
+    bluetooth: bluez bluez-utils
     docker: docker docker-buildx docker-compose
     gcc-c++: gcc
     man-db: man-db man-pages
