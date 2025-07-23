@@ -4,7 +4,14 @@ vim/.vim/**/plugged
 tmux/.tmux/**/plugins
 ncspot/.config/ncspot/*
 cava/.config/cava/*
+thunderbird/.thunderbird/**
 
 !ncspot/.config/ncspot/config.toml
 !cava/.config/cava/config
 !tmux/.tmux/**/plugins/tpm
+!/thunderbird/.thunderbird/main.default-release/
+!/thunderbird/.thunderbird/main.default-release/xulstore.json
+!/thunderbird/.thunderbird/main.default-release/chrome/
+!/thunderbird/.thunderbird/main.default-release/extensions/
+!/thunderbird/.thunderbird/main.default-release/chrome/**
+!/thunderbird/.thunderbird/main.default-release/extensions/**
