@@ -3,6 +3,8 @@
 vim/.vim/**/plugged
 tmux/.tmux/**/plugins
 ncspot/.config/ncspot/*
+cava/.config/cava/*
 
 !ncspot/.config/ncspot/config.toml
+!cava/.config/cava/config
 !tmux/.tmux/**/plugins/tpm
