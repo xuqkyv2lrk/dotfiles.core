@@ -1,8 +1,9 @@
 packages:
-  # Browsers & Communication
+  # GUI Applications (skipped in --minimal mode)
   - firefox
   - foot
   - thunderbird
+  - bitwarden
 
   # Development Tools
   - cmake
@@ -27,7 +28,7 @@ packages:
   # File Management
   - ranger
 
-  # Media & Music
+  # Media & Music (skipped in --minimal mode)
   - cava
   - mpc
   - mpd
@@ -35,7 +36,7 @@ packages:
   - ncmpcpp
   - ncspot
 
-  # Password Management
+  # Password Management (skipped in --minimal mode)
   - 1password
   - bitwarden
 
@@ -57,16 +58,17 @@ packages:
   - zoxide
 
   # System Utilities
-  - bluetooth
+  - bluetooth  # Skipped in --minimal mode
   - linux-firmware
   - man-db
   - openresolv
+  - openssh
   - rsync
   - wireguard-tools
-  - wl-clipboard
+  - wl-clipboard  # Skipped in --minimal mode (requires Wayland)
   - zsh
 
-  # Virtualization & Networking (combined)
+  # Virtualization & Networking (skipped in --minimal mode)
   - dnsmasq
   - ebtables
   - libvirt
