@@ -396,6 +396,7 @@ function install_binaries() {
     cd /tmp/tfenv
     git sparse-checkout set bin
     mv bin/* "${HOME}/bin"
+    cd - > /dev/null  # Return to previous directory
     rm -rf /tmp/tfenv
     binary_installed=true
   fi
