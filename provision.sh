@@ -204,16 +204,12 @@ function install_repos() {
     "arch")
       # Update mirrors using reflector for faster downloads
       echo -e "\n${BLUE}Updating Arch mirrors with reflector...${NC}"
-      sudo pacman -S --needed --noconfirm reflector python-requests
+      sudo pacman -S --needed --noconfirm reflector
       
-      # Try to detect country automatically, fall back to global if it fails
-      echo -e "${YELLOW}Detecting your location for optimal mirrors...${NC}"
-      if sudo reflector --country auto --latest 10 --protocol https --sort rate --save /etc/pacman.d/mirrorlist 2>/dev/null; then
-        echo -e "${GREEN}Using mirrors from your country${NC}"
-      else
-        echo -e "${YELLOW}Auto-detection failed, using fastest global mirrors${NC}"
-        sudo reflector --latest 20 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
-      fi
+      # Use US mirrors sorted by age (most recently synced)
+      echo -e "${YELLOW}Selecting fastest US mirrors...${NC}"
+      sudo reflector --country US --latest 10 --protocol https --sort age --download-timeout 10 --save /etc/pacman.d/mirrorlist
+      echo -e "${GREEN}Using recently synced US mirrors${NC}"
       
       # Install yay if not already installed
       if ! command -v yay &> /dev/null; then
@@ -252,7 +248,7 @@ function install_repos() {
       local latest_minor_version
       latest_minor_version=$(echo "${latest_version}" | grep -oE 'v1\.[0-9]+')
       sudo mkdir -p /etc/apt/keyrings
-      curl -fsSL https://pkgs.k8s.io/core:/stable:/${latest_minor_version}/deb/Release.key | sudo gpg --dearmor --yes --output /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+      curl -fsSL "https://pkgs.k8s.io/core:/stable:/${latest_minor_version}/deb/Release.key" | sudo gpg --dearmor --yes --output /etc/apt/keyrings/kubernetes-apt-keyring.gpg
       echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/${latest_minor_version}/deb/ /" | sudo tee /etc/apt/sources.list.d/kubernetes.list > /dev/null
       ;;
     *)
@@ -333,9 +329,11 @@ function install_package() {
   echo -e "\n\e[35mInstalling \e[1m${package_name}\e[0m"
   case "${distro}" in
     "arch")
+      # shellcheck disable=SC2086
       yay -S --noconfirm ${package_name}
       ;;
     "ubuntu")
+      # shellcheck disable=SC2086
       sudo DEBIAN_FRONTEND=noninteractive apt-get install -y ${package_name}
       ;;
     *)
@@ -600,13 +598,15 @@ function install_rust() {
     echo -e "\n${MAGENTA}Installing ${BOLD}rustup${NC}"
     # Install with --no-modify-path to prevent automatic shell config modification
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
+    # shellcheck source=/dev/null
     . "${HOME}/.cargo/env"
     rustup default stable
     
     # Manually add cargo to .zshenv only if not already present
-    if [[ -f "${HOME}/.zshenv" ]] && ! grep -q ".cargo/env" "${HOME}/.zshenv"; then
-      echo -e "\n# Cargo environment" >> "${HOME}/.zshenv"
-      echo '. "$HOME/.cargo/env"' >> "${HOME}/.zshenv"
+    if [[ -f "${HOME}/.zshenv" ]] && ! grep -q ".cargo" "${HOME}/.zshenv"; then
+      echo -e "\n# Rust" >> "${HOME}/.zshenv"
+      # shellcheck disable=SC2016
+      echo 'path=("${HOME}/.cargo/bin" $path)' >> "${HOME}/.zshenv"
     fi
   fi
 }
@@ -635,6 +635,7 @@ function install_media_tools() {
     echo -e "${BLUE}Installing ${BOLD}ffmpeg-lh${NC} ${BLUE}via cargo${NC}"
     # Ensure cargo is in PATH for this session
     if [[ -f "${HOME}/.cargo/env" ]]; then
+      # shellcheck source=/dev/null
       . "${HOME}/.cargo/env"
     fi
     cargo install --git https://github.com/indiscipline/ffmpeg-loudnorm-helper.git
@@ -735,13 +736,15 @@ function post_install_configure() {
     
     # Add Atuin bin to PATH in .zshenv (sourced first, before .zshrc)
     if [[ -f "${HOME}/.zshenv" ]] && ! grep -q "atuin/bin" "${HOME}/.zshenv"; then
-      echo -e "\n# Atuin environment" >> "${HOME}/.zshenv"
-      echo 'export PATH="$HOME/.atuin/bin:$PATH"' >> "${HOME}/.zshenv"
+      echo -e "\n# Atuin" >> "${HOME}/.zshenv"
+      # shellcheck disable=SC2016
+      echo 'path=("${HOME}/.atuin/bin" $path)' >> "${HOME}/.zshenv"
     fi
     
     # Manually add Atuin configuration to .zshrc only if not already present
     if [[ -f "${HOME}/.zshrc" ]] && ! grep -q "atuin init zsh" "${HOME}/.zshrc"; then
       echo -e "\n# Atuin shell history" >> "${HOME}/.zshrc"
+      # shellcheck disable=SC2016
       echo 'eval "$(atuin init zsh)"' >> "${HOME}/.zshrc"
     fi
   else
@@ -797,7 +800,7 @@ function main() {
   echo -e "\n\e[1;37mPreparing to install binaries...\e[0m"
   install_binaries
   echo -e "\n\e[1;37mStowing dotfile configurations...\e[0;32m"
-  stow -v */
+  stow -v ./*/ 
   install_rust
   install_media_tools "${distro}"
   install_tmux_plugins

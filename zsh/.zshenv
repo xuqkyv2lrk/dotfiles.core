@@ -46,7 +46,7 @@ path=("${HOME}/.local/bin" $path)
 path=("/sbin" $path)
 # emacs
 path=("${HOME}/.emacs.d/bin" $path)
-# Rust
-. "${HOME}/.cargo/env"
-# Atuin
-. "${HOME}/.atuin/bin/env"
+# rust cargo
+path=("${HOME}/.cargo/bin" $path)
+# atuin
+path=("${HOME}/.atuin/bin" $path)

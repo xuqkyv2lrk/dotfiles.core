@@ -94,6 +94,7 @@ exceptions:
     docker: docker docker-buildx docker-compose
     gcc-c++: gcc
     man-db: man-db man-pages
+    openssl-devel: skip
     qemu: qemu-full
 
   ubuntu:
