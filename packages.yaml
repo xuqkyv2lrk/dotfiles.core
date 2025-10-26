@@ -36,6 +36,13 @@ packages:
   - ncmpcpp
   - ncspot
 
+  # Media Processing Tools
+  - bc
+  - curl
+  - ffmpeg
+  - imagemagick
+  - yt-dlp
+
   # Password Management (skipped in --minimal mode)
   - 1password
   - bitwarden
@@ -101,3 +108,4 @@ exceptions:
     ncspot: skip
     qemu: qemu-system-x86 qemu-kvm
     virt-install: virtinst
+    yt-dlp: skip  # Installed via pip in provision.sh

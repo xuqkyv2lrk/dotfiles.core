@@ -102,8 +102,8 @@ function should_skip_package() {
 # Function: detect_distro
 # Description: Detects the Linux distribution of the current system.
 # Returns: The ID of the detected distribution ("arch", "ubuntu", "legacy", "unsupported", or "unknown").
-detect_distro() {
-  if [ -f /etc/os-release ]; then
+function detect_distro() {
+  if [[ -f /etc/os-release ]]; then
     . /etc/os-release
     case "${ID}" in
       arch|ubuntu)
@@ -156,21 +156,21 @@ function get_packages() {
 #   $2 - The distribution ID
 # Returns: The package name to use for installation
 function get_package_name() {
-    local package=$1
-    local distro=$2
-    local package_name=$package
+    local package="$1"
+    local distro="$2"
+    local package_name="${package}"
 
     if grep -q "^exceptions:" packages.yaml; then
-        if grep -q "^  $distro:" packages.yaml; then
+        if grep -q "^  ${distro}:" packages.yaml; then
             local exception
-            exception=$(sed -n "/^  $distro:/,/^  [^ ]/p" packages.yaml | grep "^    $package:" | cut -d ':' -f2- | sed 's/ //')
-            if [ ! -z "$exception" ]; then
-                package_name=$exception
+            exception=$(sed -n "/^  ${distro}:/,/^  [^ ]/p" packages.yaml | grep "^    ${package}:" | cut -d ':' -f2- | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+            if [[ -n "${exception}" ]]; then
+                package_name="${exception}"
             fi
         fi
     fi
 
-    echo "$package_name"
+    echo "${package_name}"
 }
 
 # Function: system_update
@@ -229,23 +229,55 @@ function install_repos() {
         sudo mkdir -p /usr/share/debsig/keyrings/AC2D62742012EA22
         curl -sS https://downloads.1password.com/linux/keys/1password.asc | sudo gpg --dearmor --yes --output /usr/share/debsig/keyrings/AC2D62742012EA22/debsig.gpg
       fi
-      
-      # Docker repository and key
-      curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-      sudo add-apt-repository -y "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-      
-      # Kubernetes repository and key
+
+      # fastfetch PPA
+      sudo add-apt-repository -y ppa:zhangsongcui3371/fastfetch
+
+      # kubectl (Kubernetes) repository and key
+      local latest_version
+      latest_version=$(curl -s https://api.github.com/repos/kubernetes/kubernetes/releases/latest | grep tag_name | cut -d '"' -f 4)
+      local latest_minor_version
+      latest_minor_version=$(echo "${latest_version}" | grep -oE 'v1\.[0-9]+')
       sudo mkdir -p /etc/apt/keyrings
-      curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-      echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
-      
-      # Update apt after adding new repositories
-      sudo apt-get update
+      curl -fsSL https://pkgs.k8s.io/core:/stable:/${latest_minor_version}/deb/Release.key | sudo gpg --dearmor --yes --output /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+      echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/${latest_minor_version}/deb/ /" | sudo tee /etc/apt/sources.list.d/kubernetes.list > /dev/null
       ;;
     *)
       echo "Unsupported distribution: ${distro}"
       ;;
   esac
+}
+
+# Function: install_foot_ubuntu
+# Description: Installs the latest Foot terminal emulator from source on Ubuntu,
+#              including all required build dependencies. Cleans up after install.
+# Side effects: Installs packages, builds foot, and installs terminfo.
+function install_foot_ubuntu() {
+  echo -e "\n${MAGENTA}Installing ${BOLD}foot${NC}"
+
+  # Install build dependencies
+  echo -e "${YELLOW}Installing build dependencies for Foot...${NC}"
+  sudo apt-get update
+  sudo apt-get install -y \
+    build-essential meson ninja-build pkg-config wayland-protocols \
+    libwayland-dev libxkbcommon-dev libpixman-1-dev libfcft-dev libutf8proc-dev \
+    libfontconfig1-dev libpam0g-dev scdoc git
+
+  # Clone and build Foot
+  echo -e "${YELLOW}Cloning Foot repository...${NC}"
+  git clone https://codeberg.org/dnkl/foot.git /tmp/foot
+  cd /tmp/foot
+
+  echo -e "${YELLOW}Building Foot...${NC}"
+  meson setup build
+  ninja -C build
+
+  echo -e "${GREEN}Installing Foot...${NC}"
+  sudo ninja -C build install
+
+  # Cleanup
+  cd -
+  rm -rf /tmp/foot
 }
 
 # Function: install_package
@@ -265,19 +297,33 @@ function install_package() {
   local package_name
   package_name=$(get_package_name "${package}" "${distro}")
   
-  if [[ "${package_name}" == "none" ]]; then
-    echo -e "\n${YELLOW}Skipping ${BOLD}${package}${NC}${YELLOW} (not available for ${distro})${NC}"
+  if [[ "${package_name}" == "skip" ]]; then
+    return
+  fi
+
+  # Special case for Foot on Ubuntu
+  if [[ "${package_name}" == "foot" && "${distro}" == "ubuntu" ]]; then
+    install_foot_ubuntu
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y foot-terminfo
+    return
+  fi
+
+  # Special case for Bitwarden on Ubuntu (no Snap)
+  if [[ "${package_name}" == "bitwarden" && "${distro}" == "ubuntu" ]]; then
+    echo -e "\n\e[35mInstalling \e[1mBitwarden (.deb)\e[0m"
+    wget -O /tmp/Bitwarden-latest.deb "https://vault.bitwarden.com/download/?app=desktop&platform=linux&variant=deb"
+    sudo dpkg -i /tmp/Bitwarden-latest.deb || sudo apt-get -f install -y
+    rm /tmp/Bitwarden-latest.deb
     return
   fi
   
+  echo -e "\n\e[35mInstalling \e[1m${package_name}\e[0m"
   case "${distro}" in
     "arch")
-      echo -e "\n${MAGENTA}Installing ${BOLD}${package_name}${NC}"
-      yay -S --noconfirm "${package_name}"
+      yay -S --noconfirm ${package_name}
       ;;
     "ubuntu")
-      echo -e "\n${MAGENTA}Installing ${BOLD}${package_name}${NC}"
-      sudo apt-get install -y "${package_name}"
+      sudo DEBIAN_FRONTEND=noninteractive apt-get install -y ${package_name}
       ;;
     *)
       echo "Unsupported distribution: ${distro}"
@@ -285,26 +331,134 @@ function install_package() {
   esac
 }
 
-# Placeholder functions for the script (implementations omitted for brevity)
+# Function: create_working_dirs
+# Description: Creates necessary working directories in the user's home folder.
+# Side effects: Creates directories for notes, work projects, and sandboxes
 function create_working_dirs() {
-  echo -e "\n${BLUE}Creating working directories...${NC}"
-  mkdir -p "${HOME}/.config" "${HOME}/.local/bin"
+  local required_dirs=(
+    "${HOME}/bin"
+    "${HOME}/notes/tome"
+    "${HOME}/work/priming"
+    "${HOME}/work/projects"
+    "${HOME}/work/sandbox"
+  )
+  for d in "${required_dirs[@]}"; do
+    if [[ ! -d "${d}" ]]; then
+      mkdir -p "${d}"
+      echo -e "\n\e[35mCreated directory \e[1m${d}\e[0m"
+    fi
+  done
+  # Export paths needed for provisioning script during session
+  export PATH="${HOME}/bin:${HOME}/.emacs.d/bin:${PATH}"
 }
 
+# Function: install_binaries
+# Description: Installs binary packages that are not available through standard package managers.
+# Side effects: Installs aws-cli, dyff, oh-my-posh, tfenv, and doom emacs if not already present.
 function install_binaries() {
-  echo -e "\n${BLUE}Installing custom binaries...${NC}"
-  # Add your binary installation logic here
+  local binary_installed=false
+
+  # aws-cli
+  if ! command -v aws &> /dev/null; then
+    echo -e "\n\e[35mInstalling \e[1maws-cli\e[0;32m"
+    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+    unzip awscliv2.zip
+    sudo ./aws/install
+    rm -rf aws awscliv2.zip
+    binary_installed=true
+  fi
+
+  # dyff
+  if ! command -v dyff &> /dev/null; then
+    curl -s --location https://git.io/JYfAY | bash
+  fi
+
+  # diff-so-fancy
+  if ! command -v diff-so-fancy &>/dev/null; then
+    echo -e "\n\e[35mInstalling \e[1mdiff-so-fancy\e[0;32m"
+    git clone https://github.com/so-fancy/diff-so-fancy.git /tmp/diff-so-fancy
+    sudo cp /tmp/diff-so-fancy/diff-so-fancy /usr/local/bin/
+    sudo cp -r /tmp/diff-so-fancy/lib /usr/local/bin/
+    rm -rf /tmp/diff-so-fancy
+  fi
+
+  # Oh My Posh
+  if ! command -v oh-my-posh &> /dev/null; then
+    echo -e "\n\e[35mInstalling \e[1moh-my-posh\e[0;32m"
+    curl -s https://ohmyposh.dev/install.sh | bash -s
+    binary_installed=true
+  fi
+
+  # tfenv
+  if ! command -v tfenv &> /dev/null; then
+    echo -e "\n\e[35mInstalling \e[1mtfenv\e[0;32m"
+    git clone --depth 1 --filter=blob:none --sparse https://github.com/tfutils/tfenv.git /tmp/tfenv
+    cd /tmp/tfenv
+    git sparse-checkout set bin
+    mv bin/* "${HOME}/bin"
+    rm -rf /tmp/tfenv
+    binary_installed=true
+  fi
+
+  # doom emacs
+  if ! command -v doom &> /dev/null; then
+    echo -e "\n\e[35mInstalling \e[1mdoom emacs\e[0;32m"
+    git clone --depth 1 https://github.com/doomemacs/doomemacs "${HOME}/.emacs.d"
+    binary_installed=true
+  fi
+
+  if [[ "${binary_installed}" == false ]]; then
+    echo -e "\e[1;37mNo new binaries to install.\e[0m"
+  fi
 }
 
+
+# Function: install_tmux_plugins
+# Description: Installs and sets up tmux plugins.
+# Side effects: Clones tmux plugin manager and installs configured plugins
 function install_tmux_plugins() {
-  echo -e "\n${BLUE}Installing tmux plugins...${NC}"
-  # Add your tmux plugin installation logic here
+  echo -e "\n\e[1;37mInstall tmux plugins...\e[0;32m"
+  if [[ ! -d "${HOME}/.tmux/plugins/tpm" ]]; then
+    git clone "https://github.com/tmux-plugins/tpm" "${HOME}/.tmux/plugins/tpm"
+  fi
+  bash "${HOME}/.tmux/plugins/tpm/scripts/install_plugins.sh"
 }
 
+
+# Function: create_nm_dispatcher
+# Description: Creates a NetworkManager dispatcher script for automatic timezone updates.
+# Side effects: Creates a new script at /etc/NetworkManager/dispatcher.d/09-timezone.sh
 function create_nm_dispatcher() {
-  echo -e "\n${BLUE}Creating NetworkManager dispatcher...${NC}"
-  # Add your dispatcher creation logic here
+  if [[ ! -f "/etc/NetworkManager/dispatcher.d/09-timezone.sh" ]]; then
+    echo -e "\n\e[1;37mCreating NetworkManager dispatcher for Timezone changes...\e[0;32m"
+    sudo mkdir -p "/etc/NetworkManager/dispatcher.d"
+    sudo tee "/etc/NetworkManager/dispatcher.d/09-timezone.sh" > /dev/null <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+function log() {
+  logger -t "timezone-update" "$1"
 }
+function update_timezone() {
+  local new_timezone
+  new_timezone=$(curl --fail --silent --show-error "https://ipapi.co/timezone")
+  if [[ -n "${new_timezone}" ]]; then
+    timedatectl set-timezone "${new_timezone}"
+    log "Timezone updated to ${new_timezone}"
+  else
+    log "Failed to fetch timezone"
+  fi
+}
+case "$2" in
+  connectivity-change)
+    update_timezone
+    ;;
+esac
+EOF
+    sudo chmod +x "/etc/NetworkManager/dispatcher.d/09-timezone.sh"
+    sudo systemctl enable --now NetworkManager-dispatcher
+  fi
+}
+
 
 # Function: configure_hardware_specific
 # Description: Applies hardware-specific configurations.
@@ -362,23 +516,23 @@ function select_desktop_interface() {
         return
     fi
     
-    if [[ "$distro" == "ubuntu" ]]; then
+    if [[ "${distro}" == "ubuntu" ]]; then
         # Check if the current desktop session is GNOME
-        if [[ "$XDG_CURRENT_DESKTOP" != *"GNOME"* && "$DESKTOP_SESSION" != "gnome" ]]; then
+        if [[ "${XDG_CURRENT_DESKTOP}" != *"GNOME"* && "${DESKTOP_SESSION}" != "gnome" ]]; then
             echo -e "\n${RED}Unsupported desktop environment detected.\nThis script supports only Ubuntu with GNOME desktop. Exiting.${NC}\n"
             exit 1
         fi
         echo -e "\n${BLUE}${BOLD}You are running Ubuntu with GNOME.${NC}"
         echo -e "${BLUE}How would you like to handle your GNOME desktop configuration?${NC}"
         select choice in "Apply custom GNOME configuration" "Apply custom GNOME configuration with PaperWM" "Leave GNOME as it is"; do
-            case $choice in
+            case ${choice} in
                 "Apply custom GNOME configuration")
-                    eval "$__choice"="gnome"
+                    eval "${__choice}"="gnome"
                     use_paperwm="false"
                     return
                     ;;
                 "Apply custom GNOME configuration with PaperWM")
-                    eval "$__choice"="gnome"
+                    eval "${__choice}"="gnome"
                     use_paperwm="true"
                     return
                     ;;
@@ -394,13 +548,13 @@ function select_desktop_interface() {
     else
         echo -e "\n${BLUE}${BOLD}Do you want to install a desktop interface?${NC}"
         select choice in "Yes" "No"; do
-            case $choice in
+            case ${choice} in
                 "Yes")
                     echo -e "\n${BLUE}${BOLD}Please select a desktop interface:${NC}"
                     mapfile -t options < <(curl -sSL ${DIREPO_RAW}/packages.yaml | yq -e '.desktop_packages | keys | .[]' | tr -d '"')
                     select de in "${options[@]}"; do
-                        if [[ -n "$de" ]]; then
-                            eval "$__choice"="$de"
+                        if [[ -n "${de}" ]]; then
+                            eval "${__choice}"="${de}"
                             return
                         else
                             echo -e "\n${RED}Invalid option. Please try again.${NC}\n"
@@ -443,10 +597,47 @@ function install_rust() {
   fi
 }
 
+# Function: install_media_tools
+# Description: Installs media processing tools not available via package managers
+# Parameters:
+#   $1 - The distribution ID
+# Side effects: Installs yt-dlp (Ubuntu) and ffmpeg-lh (all distros)
+function install_media_tools() {
+  local distro="${1}"
+  echo -e "\n${MAGENTA}Installing media processing tools${NC}"
+  
+  # Install yt-dlp on Ubuntu (Arch gets it from pacman)
+  if [[ "${distro}" == "ubuntu" ]]; then
+    if ! command -v yt-dlp &> /dev/null; then
+      echo -e "${BLUE}Installing ${BOLD}yt-dlp${NC} ${BLUE}via pip${NC}"
+      pip3 install --user yt-dlp
+    else
+      echo -e "${YELLOW}yt-dlp already installed${NC}"
+    fi
+  fi
+  
+  # Install ffmpeg-lh via cargo (not in any package manager)
+  if ! command -v ffmpeg-lh &> /dev/null; then
+    echo -e "${BLUE}Installing ${BOLD}ffmpeg-lh${NC} ${BLUE}via cargo${NC}"
+    # Ensure cargo is in PATH for this session
+    if [[ -f "${HOME}/.cargo/env" ]]; then
+      . "${HOME}/.cargo/env"
+    fi
+    cargo install --git https://github.com/indiscipline/ffmpeg-loudnorm-helper.git
+  else
+    echo -e "${YELLOW}ffmpeg-lh already installed${NC}"
+  fi
+  
+  echo -e "${GREEN}Media processing tools installed${NC}"
+}
+
 # Function: hardware_setup
 # Description: Detects hardware and applies specific configurations.
+# Parameters:
+#   $1 - The distribution ID
 # Side effects: Calls configure_hardware_specific if hardware is detected.
 function hardware_setup() {
+  local distro="${1}"
   local hardware
   hardware=$(detect_hardware)
   if [[ "${hardware}" != "unknown" ]]; then
@@ -463,7 +654,28 @@ function hardware_setup() {
 function post_install_configure() {
   # Sync doom emacs configuration and packages
   echo -e "\n\e[1;37mSetting up doom emacs...\e[0;32m"
-  doom sync
+  
+  # Add doom bin directory to PATH for this session
+  local doom_bin_path=""
+  if [[ -d "${HOME}/.config/emacs/bin" ]]; then
+    export PATH="${HOME}/.config/emacs/bin:${PATH}"
+    doom_bin_path="${HOME}/.config/emacs/bin/doom"
+  elif [[ -d "${HOME}/.emacs.d/bin" ]]; then
+    export PATH="${HOME}/.emacs.d/bin:${PATH}"
+    doom_bin_path="${HOME}/.emacs.d/bin/doom"
+  fi
+  
+  # Check if doom binary actually exists
+  if [[ -n "${doom_bin_path}" ]] && [[ -x "${doom_bin_path}" ]]; then
+    doom sync
+  elif command -v doom &> /dev/null; then
+    doom sync
+  else
+    echo -e "\n${YELLOW}Warning: doom command not found. Skipping doom sync.${NC}"
+    echo -e "${YELLOW}If you need Doom Emacs, install it with:${NC}"
+    echo -e "${YELLOW}  git clone --depth 1 https://github.com/doomemacs/doomemacs ~/.config/emacs${NC}"
+    echo -e "${YELLOW}  ~/.config/emacs/bin/doom install${NC}"
+  fi
 
   # Rebuild bat cache (syntax highlighting for bat)
   echo -e "\n\e[1;37mRebuilding cache for \e[1;33mbat\e[1;37m...\e[0;32m"
@@ -477,9 +689,14 @@ function post_install_configure() {
   fi
   bat cache --build
 
-  # Install VIM plugins using vim-plug
-  echo -e "\n\e[1;37mInstall VIM plugins...\e[0;32m"
-  vim +'PlugInstall --sync' +qa
+  # Install VIM plugins using vim-plug (if vim-plug is installed)
+  if [[ -f "${HOME}/.vim/autoload/plug.vim" ]] || [[ -f "${HOME}/.local/share/nvim/site/autoload/plug.vim" ]]; then
+    echo -e "\n\e[1;37mInstalling VIM plugins...\e[0;32m"
+    vim +'PlugInstall --sync' +qa
+  else
+    echo -e "\n${YELLOW}vim-plug not found, skipping plugin installation${NC}"
+    echo -e "${YELLOW}To install vim-plug, see: https://github.com/junegunn/vim-plug${NC}"
+  fi
 
   # Enable libvirtd for VM system management (skip in minimal mode)
   if [[ "${MINIMAL_MODE}" != "true" ]]; then
@@ -562,9 +779,10 @@ function main() {
   echo -e "\n\e[1;37mStowing dotfile configurations...\e[0;32m"
   stow -v */
   install_rust
+  install_media_tools "${distro}"
   install_tmux_plugins
   create_nm_dispatcher
-  hardware_setup
+  hardware_setup "${distro}"
   post_install_configure
   select_desktop_interface desktop_interface
   
