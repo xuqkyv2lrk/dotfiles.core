@@ -202,6 +202,19 @@ function install_repos() {
   local distro="${1}"
   case "${distro}" in
     "arch")
+      # Update mirrors using reflector for faster downloads
+      echo -e "\n${BLUE}Updating Arch mirrors with reflector...${NC}"
+      sudo pacman -S --needed --noconfirm reflector python-requests
+      
+      # Try to detect country automatically, fall back to global if it fails
+      echo -e "${YELLOW}Detecting your location for optimal mirrors...${NC}"
+      if sudo reflector --country auto --latest 10 --protocol https --sort rate --save /etc/pacman.d/mirrorlist 2>/dev/null; then
+        echo -e "${GREEN}Using mirrors from your country${NC}"
+      else
+        echo -e "${YELLOW}Auto-detection failed, using fastest global mirrors${NC}"
+        sudo reflector --latest 20 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
+      fi
+      
       # Install yay if not already installed
       if ! command -v yay &> /dev/null; then
         echo -e "\n${YELLOW}Installing yay...${GREEN}"
@@ -209,7 +222,7 @@ function install_repos() {
         git clone https://aur.archlinux.org/yay.git
         cd yay
         makepkg -si --noconfirm
-        cd ..
+        cd - > /dev/null
         rm -rf yay
       fi
       # Remove iptables if installed as it conflicts with ebtables
@@ -349,7 +362,7 @@ function create_working_dirs() {
     fi
   done
   # Export paths needed for provisioning script during session
-  export PATH="${HOME}/bin:${HOME}/.emacs.d/bin:${PATH}"
+  export PATH="${HOME}/bin:${HOME}/.emacs.d/bin:${HOME}/.atuin/bin:${PATH}"
 }
 
 # Function: install_binaries
@@ -715,15 +728,21 @@ function post_install_configure() {
     curl --proto '=https' --tlsv1.2 -LsSf https://github.com/atuinsh/atuin/releases/latest/download/atuin-installer.sh | sh -s -- --no-modify-path 2>/dev/null || \
     curl --proto '=https' --tlsv1.2 -LsSf https://github.com/atuinsh/atuin/releases/latest/download/atuin-installer.sh | sh
     
+    # Add Atuin to PATH for current session
+    if [[ -d "${HOME}/.atuin/bin" ]]; then
+      export PATH="${HOME}/.atuin/bin:${PATH}"
+    fi
+    
+    # Add Atuin bin to PATH in .zshenv (sourced first, before .zshrc)
+    if [[ -f "${HOME}/.zshenv" ]] && ! grep -q "atuin/bin" "${HOME}/.zshenv"; then
+      echo -e "\n# Atuin environment" >> "${HOME}/.zshenv"
+      echo 'export PATH="$HOME/.atuin/bin:$PATH"' >> "${HOME}/.zshenv"
+    fi
+    
     # Manually add Atuin configuration to .zshrc only if not already present
     if [[ -f "${HOME}/.zshrc" ]] && ! grep -q "atuin init zsh" "${HOME}/.zshrc"; then
       echo -e "\n# Atuin shell history" >> "${HOME}/.zshrc"
       echo 'eval "$(atuin init zsh)"' >> "${HOME}/.zshrc"
-    fi
-    
-    # Add to .zshenv if it exists and doesn't have the entry
-    if [[ -f "${HOME}/.zshenv" ]] && ! grep -q "atuin/bin" "${HOME}/.zshenv"; then
-      echo '. "$HOME/.atuin/bin/env"' >> "${HOME}/.zshenv"
     fi
   else
     echo -e "\n${YELLOW}Atuin is already installed, skipping installation${NC}"
