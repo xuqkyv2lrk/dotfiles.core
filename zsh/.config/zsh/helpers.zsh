@@ -4,18 +4,43 @@ bold=$(tput bold)
 normal=$(tput sgr0)
 
 #***
+# rgj: Run ripgrep with JSON output and pretty-print results using delta.
+# Usage: rgj <pattern> [file ...]
+# Example: rgj TODO src/
+#***
+function rgj() {
+    rg --json "${@}" | delta
+}
+
+
+#***
 # Filesearch
 #***
 function f() { find . -iname "*$1*" "${@:2}"; }
-function r() { grep "$1" "${@:2}" -R .; }
+function r() { rgj -u "$1" "${@:2}"; }
+function h() { rg --hidden --files --glob "$1" "${@:2}"; }
 
 #***
 # Search file with fzf and open
 #***
 function fe() {
+    local search_dir="${1:-.}"
     local files
-    IFS=$'\n' files=($(fzf --multi --select-1 --exit-0))
-    [[ -n "$files" ]] && ${EDITOR:-vim} "${files[@]}"
+    files=$(rg --files --hidden "$search_dir" | fzf --multi --select-1 --exit-0)
+    [[ -n "$files" ]] && ${EDITOR:-vim} $files
+}
+
+function fes() {
+    local selected
+    selected=$(rg --line-number --no-heading --color=always "$@" | \
+        fzf --ansi --delimiter : \
+            --preview 'bat --color=always {1} --highlight-line {2}' \
+            --preview-window=up:60%:wrap)
+    if [ -n "$selected" ]; then
+        local file=$(echo "$selected" | cut -d: -f1)
+        local line=$(echo "$selected" | cut -d: -f2)
+        ${EDITOR:-vim} +${line} ${file}
+    fi
 }
 
 #***
@@ -35,35 +60,6 @@ function pip-install-save {
 #***
 function tsession() {
     sh ~/.tmux/tmux-bootstrap.sh "$1"
-}
-
-#***
-# Set AWS profile
-#***
-function setaws() {
-    local PURPLE='\033[1;35m'
-    local YELLOW='\033[1;33m'
-    local NC='\033[0m' # No Color
-
-    if ! command -v aws &> /dev/null; then
-	echo -e "${PURPLE}Please install the AWS Command Line Interface.${NC}"
-	return 1
-    fi
-
-    local profile_name="${1}"
-    local profile_status=$( (aws configure --profile ${profile_name} list) 2>&1)
-
-    if [[ $profile_status = *'could not be found'* ]]; then
-        echo -e "Unable to locate credentials for ${PURPLE}${profile_name}${NC}."
-        echo -e "You can configure credentials by running \"${YELLOW}aws configure --profile ${1}${NC}\"."
-    else
-        export AWS_DEFAULT_PROFILE=$profile_name
-        export AWS_PROFILE=$profile_name
-        export AWS_DEFAULT_REGION=$(aws configure get region)
-        export AWS_REGION=$(aws configure get region)
-        export AWS_ACCOUNT=$(aws sts get-caller-identity --query "Account" --output text)
-        export AWS_ACCOUNT_ALIAS=$(aws iam list-account-aliases --query "AccountAliases" --output text)
-    fi
 }
 
 #***

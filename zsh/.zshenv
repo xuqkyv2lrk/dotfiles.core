@@ -35,6 +35,13 @@ fi
 
 export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#585b70,bg=none,bold"
 
+export FZF_DEFAULT_OPTS=" \
+--color=bg+:#313244,bg:#1E1E2E,spinner:#F5E0DC,hl:#F38BA8 \
+--color=fg:#CDD6F4,header:#F38BA8,info:#CBA6F7,pointer:#F5E0DC \
+--color=marker:#B4BEFE,fg+:#CDD6F4,prompt:#CBA6F7,hl+:#F38BA8 \
+--color=selected-bg:#45475A \
+--color=border:#313244,label:#CDD6F4"
+
 #**********
 # PATHS
 #**********
@@ -46,7 +53,7 @@ path=("${HOME}/.local/bin" $path)
 path=("/sbin" $path)
 # emacs
 path=("${HOME}/.emacs.d/bin" $path)
-# Rust
-. "${HOME}/.cargo/env"
-# Atuin
-. "${HOME}/.atuin/bin/env"
+# rust cargo
+path=("${HOME}/.cargo/bin" $path)
+# atuin
+path=("${HOME}/.atuin/bin" $path)
