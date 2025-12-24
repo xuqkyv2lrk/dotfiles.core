@@ -811,7 +811,7 @@ function main() {
   
   # Only run desktop interface installation if not in minimal mode
   if [[ "${MINIMAL_MODE}" != "true" ]]; then
-    curl -sSL "${DIREPO_RAW}/install.sh" | bash -s "${distro}" "${desktop_interface}" "${use_paperwm}"
+    curl -sSL "${DIREPO_RAW}/install.sh" | bash -s "${distro}" "${desktop_interface}" "${use_paperwm}" "auto"
   fi
   
   echo -e "\n${GREEN}${BOLD}Installation complete!${NC}"
