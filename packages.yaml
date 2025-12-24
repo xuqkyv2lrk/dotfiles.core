@@ -85,6 +85,7 @@ exceptions:
     docker: docker.io docker-compose
     libvirt: libvirt-daemon-system libvirt-clients
     openresolv: skip
+    openssh: openssh-client openssh-server
     openssl-devel: libssl-dev
     ncspot: skip
     qemu: qemu-system-x86 qemu-kvm
