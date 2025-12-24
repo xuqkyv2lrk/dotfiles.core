@@ -800,7 +800,7 @@ function main() {
   echo -e "\n\e[1;37mPreparing to install binaries...\e[0m"
   install_binaries
   echo -e "\n\e[1;37mStowing dotfile configurations...\e[0;32m"
-  stow -v ./*/ 
+  stow -v */
   install_rust
   install_media_tools "${distro}"
   install_tmux_plugins
