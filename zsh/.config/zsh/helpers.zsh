@@ -26,8 +26,33 @@ function h() { rg --hidden --files --glob "$1" "${@:2}"; }
 function fe() {
     local search_dir="${1:-.}"
     local files
-    IFS=$'\n' files=($(rgj --files --hidden "$search_dir" | fzf --multi --select-1 --exit-0))
-    [[ -n "$files" ]] && ${EDITOR:-vim} "${files[@]}"
+    files=$(rg --files --hidden "$search_dir" | fzf --multi --select-1 --exit-0)
+    [[ -n "$files" ]] && ${EDITOR:-vim} $files
+}
+
+function fes() {
+    local selected
+    selected=$(rg --line-number --no-heading --color=always "$@" | \
+        fzf --ansi --delimiter : \
+            --preview 'bat --color=always {1} --highlight-line {2}' \
+            --preview-window=up:60%:wrap)
+    if [ -n "$selected" ]; then
+        local file=$(echo "$selected" | cut -d: -f1)
+        local line=$(echo "$selected" | cut -d: -f2)
+        ${EDITOR:-vim} +${line} ${file}
+    fi
+}
+
+#***
+# yazi
+#***
+function y() {
+	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")"
+	yazi "$@" --cwd-file="$tmp"
+	if cwd="$(cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
+		cd -- "$cwd"
+	fi
+	rm -f -- "$tmp"
 }
 
 #***
