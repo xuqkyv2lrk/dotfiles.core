@@ -69,10 +69,13 @@
 [include]
     path = "~/.config/delta/catppuccin.gitconfig"
 
+[includeIf "hasconfig:remote.*.url:gitlab-personal:*/**"]
+    path = ~/.gitconfig-gitlab-personal
+
 [includeIf "hasconfig:remote.*.url:gitlab:*/**"]
     path = ~/.gitconfig-gitlab
 
-[includeIf "hasconfig:remote.*.url:github:*/**"]
+[includeIf "hasconfig:remote.*.url:gh-arterro:*/**"]
     path = ~/.gitconfig-github
 
 [includeIf "hasconfig:remote.*.url:codeberg:*/**"]

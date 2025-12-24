@@ -163,7 +163,7 @@ function get_package_name() {
     if grep -q "^exceptions:" packages.yaml; then
         if grep -q "^  ${distro}:" packages.yaml; then
             local exception
-            exception=$(sed -n "/^  ${distro}:/,/^  [^ ]/p" packages.yaml | grep "^    ${package}:" | cut -d ':' -f2- | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+            exception=$(sed -n "/^  ${distro}:/,/^  [^ ]/p" packages.yaml | grep "^    ${package}:" | cut -d ':' -f2- | sed 's/^[[:space:]]*//;s/[[:space:]]*#.*//;s/[[:space:]]*$//')
             if [[ -n "${exception}" ]]; then
                 package_name="${exception}"
             fi

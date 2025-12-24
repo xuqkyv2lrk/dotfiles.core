@@ -1,11 +1,8 @@
 packages:
-  # GUI Applications (skipped in --minimal mode)
   - firefox
   - foot
   - thunderbird
   - bitwarden
-
-  # Development Tools
   - cmake
   - dmidecode
   - docker
@@ -21,33 +18,21 @@ packages:
   - shellcheck
   - tmux
   - vim
-
-  # Document Processing
   - pandoc
-
-  # File Management
   - ranger
-
-  # Media & Music (skipped in --minimal mode)
   - cava
   - mpc
   - mpd
   - mpv
   - ncmpcpp
   - ncspot
-
-  # Media Processing Tools
   - bc
   - curl
   - ffmpeg
   - imagemagick
   - yt-dlp
-
-  # Password Management (skipped in --minimal mode)
   - 1password
   - bitwarden
-
-  # Shell Utilities
   - bat
   - direnv
   - eza
@@ -63,19 +48,15 @@ packages:
   - wget
   - yq
   - zoxide
-
-  # System Utilities
-  - bluetooth  # Skipped in --minimal mode
+  - bluetooth
   - linux-firmware
   - man-db
   - openresolv
   - openssh
   - rsync
   - wireguard-tools
-  - wl-clipboard  # Skipped in --minimal mode (requires Wayland)
+  - wl-clipboard
   - zsh
-
-  # Virtualization & Networking (skipped in --minimal mode)
   - dnsmasq
   - ebtables
   - libvirt
@@ -87,7 +68,6 @@ packages:
   - virt-viewer
   - ufw
 
-# Handle distribution-specific names
 exceptions:
   arch:
     bluetooth: bluez bluez-utils
@@ -109,4 +89,4 @@ exceptions:
     ncspot: skip
     qemu: qemu-system-x86 qemu-kvm
     virt-install: virtinst
-    yt-dlp: skip  # Installed via pip in provision.sh
+    yt-dlp: skip
