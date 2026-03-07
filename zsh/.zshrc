@@ -80,6 +80,5 @@ fi
 #**********
 # Evaluations
 #**********
-eval "$(zoxide init zsh)"
 eval "$(direnv hook zsh)"
 eval "$(atuin init zsh)"
