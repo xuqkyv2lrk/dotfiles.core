@@ -646,6 +646,31 @@ function install_media_tools() {
   echo -e "${GREEN}Media processing tools installed${NC}"
 }
 
+# Function: configure_uv1_audio
+# Description: Creates modprobe configuration for the Universal Audio UV1
+#              interface to fix audio playback issues.
+# Side effects: Creates /etc/modprobe.d/uv1-audio.conf and reloads the
+#               snd-usb-audio kernel module.
+function configure_uv1_audio() {
+  local conf_file="/etc/modprobe.d/uv1-audio.conf"
+  local conf_content="options snd_usb_audio implicit_fb=1 ignore_ctl_error=1 autoclock=0 quirk_flags=0x1397:0x0510:0x40"
+
+  if [[ ! -f "${conf_file}" ]]; then
+    echo -e "\n${MAGENTA}Configuring ${BOLD}UV1 audio interface${NC}"
+    echo "${conf_content}" | sudo tee "${conf_file}" > /dev/null
+    if sudo modprobe -r snd-usb-audio 2>/dev/null && sudo modprobe snd-usb-audio 2>/dev/null; then
+      echo -e "${GREEN}UV1 audio configuration applied${NC}"
+    else
+      echo -e "${YELLOW}UV1 config written but module reload failed (device may be in use).${NC}"
+      echo -e "${YELLOW}To apply without rebooting, unplug the UV1 and run:${NC}"
+      echo -e "${YELLOW}  sudo modprobe -r snd-usb-audio && sudo modprobe snd-usb-audio${NC}"
+    fi
+  else
+    echo -e "\n${YELLOW}UV1 audio configuration already present, skipping${NC}"
+  fi
+}
+
+
 # Function: hardware_setup
 # Description: Detects hardware and applies specific configurations.
 # Parameters:
@@ -806,6 +831,7 @@ function main() {
   install_tmux_plugins
   create_nm_dispatcher
   hardware_setup "${distro}"
+  configure_uv1_audio
   post_install_configure
   select_desktop_interface desktop_interface
   
