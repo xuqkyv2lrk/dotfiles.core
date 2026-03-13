@@ -48,6 +48,10 @@ packages:
   - wget
   - yq
   - zoxide
+  - noto-fonts
+  - noto-fonts-cjk
+  - noto-fonts-emoji
+  - noto-fonts-extra
   - bluetooth
   - linux-firmware
   - man-db
@@ -89,5 +93,9 @@ exceptions:
     openssl-devel: libssl-dev
     ncspot: skip
     qemu: qemu-system-x86 qemu-kvm
+    noto-fonts: fonts-noto
+    noto-fonts-cjk: fonts-noto-cjk
+    noto-fonts-emoji: fonts-noto-color-emoji
+    noto-fonts-extra: fonts-noto-extra
     virt-install: virtinst
     yt-dlp: skip
