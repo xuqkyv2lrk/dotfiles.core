@@ -10,7 +10,10 @@ packages:
   - gcc-c++
   - go
   - graphviz
+  - cloudflared
+  - helm
   - kubectl
+  - sops
   - meson
   - nodejs
   - npm
@@ -82,6 +85,7 @@ exceptions:
     qemu: qemu-full
 
   ubuntu:
+    cloudflared: skip
     go: golang-go
     gcc-c++: g++
     python: python3

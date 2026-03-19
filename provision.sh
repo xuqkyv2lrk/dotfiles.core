@@ -412,6 +412,20 @@ function install_binaries() {
     binary_installed=true
   fi
 
+  # flux
+  if ! command -v flux &> /dev/null; then
+    echo -e "\n\e[35mInstalling \e[1mflux\e[0;32m"
+    curl -s https://fluxcd.io/install.sh | sudo bash
+    binary_installed=true
+  fi
+
+  # talosctl
+  if ! command -v talosctl &> /dev/null; then
+    echo -e "\n\e[35mInstalling \e[1mtalosctl\e[0;32m"
+    curl -sL https://talos.dev/install | sh
+    binary_installed=true
+  fi
+
   # doom emacs
   if ! command -v doom &> /dev/null; then
     echo -e "\n\e[35mInstalling \e[1mdoom emacs\e[0;32m"
