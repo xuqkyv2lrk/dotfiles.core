@@ -6,7 +6,7 @@ mpd_port                              = 6600
 mpd_music_dir                         = ~/music
 mpd_connection_timeout                = 5
 mouse_support                         = no
-startup_screen                        = playlist
+startup_screen                        = media_library
 
 [Visualizer]
 visualizer_data_source                = /tmp/mpd.fifo
