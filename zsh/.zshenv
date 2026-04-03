@@ -3,6 +3,7 @@
 # ****
 # ENV Variables
 # ****
+export COLORTERM=truecolor
 export XDG_CONFIG_HOME="${HOME}/.config"
 export XDG_CACHE="${HOME}/.cache"
 export XDG_DATA_HOME="${HOME}/.local/share"
