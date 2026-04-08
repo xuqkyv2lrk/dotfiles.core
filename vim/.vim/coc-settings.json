@@ -51,6 +51,6 @@
     },
     "yaml.schemas": {
         "kubernetes": "/*.yaml"
-    },
+    }
 }
 
