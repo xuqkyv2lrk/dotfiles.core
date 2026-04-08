@@ -57,3 +57,5 @@ path=("${HOME}/.emacs.d/bin" $path)
 path=("${HOME}/.cargo/bin" $path)
 # atuin
 path=("${HOME}/.atuin/bin" $path)
+# go
+path=("${GOPATH}/bin" $path)
