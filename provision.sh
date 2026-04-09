@@ -530,73 +530,50 @@ EOF
 }
 
 # Function: select_desktop_interface
-# Description: On Ubuntu, prompts the user to apply a custom GNOME configuration or leave the current setup unchanged. On other distros, prompts for desktop interface selection.
+# Description: Prompts the user to select a desktop interface to install.
+#              DE-specific options (Quickshell, PaperWM) are handled by install.sh.
+#              In minimal mode, skips selection entirely.
 function select_desktop_interface() {
     local __choice=$1
     local distro
     distro=$(detect_distro)
-    
+
     # Skip desktop interface selection in minimal mode
     if [[ "${MINIMAL_MODE}" == "true" ]]; then
         echo -e "\n${YELLOW}Skipping desktop interface installation (minimal mode)${NC}"
         return
     fi
-    
-    if [[ "${distro}" == "ubuntu" ]]; then
-        # Check if the current desktop session is GNOME
-        if [[ "${XDG_CURRENT_DESKTOP}" != *"GNOME"* && "${DESKTOP_SESSION}" != "gnome" ]]; then
-            echo -e "\n${RED}Unsupported desktop environment detected.\nThis script supports only Ubuntu with GNOME desktop. Exiting.${NC}\n"
-            exit 1
-        fi
-        echo -e "\n${BLUE}${BOLD}You are running Ubuntu with GNOME.${NC}"
-        echo -e "${BLUE}How would you like to handle your GNOME desktop configuration?${NC}"
-        select choice in "Apply custom GNOME configuration" "Apply custom GNOME configuration with PaperWM" "Leave GNOME as it is"; do
-            case ${choice} in
-                "Apply custom GNOME configuration")
-                    eval "${__choice}"="gnome"
-                    use_paperwm="false"
-                    return
-                    ;;
-                "Apply custom GNOME configuration with PaperWM")
-                    eval "${__choice}"="gnome"
-                    use_paperwm="true"
-                    return
-                    ;;
-                "Leave GNOME as it is")
-                    printf "\nNo changes will be made to your GNOME desktop.\n"
-                    exit
-                    ;;
-                *)
-                    echo -e "\n${RED}Invalid option. Please try again.${NC}\n"
-                    ;;
-            esac
-        done
-    else
-        echo -e "\n${BLUE}${BOLD}Do you want to install a desktop interface?${NC}"
-        select choice in "Yes" "No"; do
-            case ${choice} in
-                "Yes")
-                    echo -e "\n${BLUE}${BOLD}Please select a desktop interface:${NC}"
-                    mapfile -t options < <(curl -sSL ${DIREPO_RAW}/packages.yaml | yq -e '.desktop_packages | keys | .[]' | tr -d '"')
-                    select de in "${options[@]}"; do
-                        if [[ -n "${de}" ]]; then
-                            eval "${__choice}"="${de}"
-                            return
-                        else
-                            echo -e "\n${RED}Invalid option. Please try again.${NC}\n"
-                        fi
-                    done
-                    ;;
-                "No")
-                    printf "\nSkipping desktop interface installation.\n"
-                    exit
-                    ;;
-                *)
-                    echo -e "\n${RED}Invalid option. Please try again.${NC}\n"
-                    ;;
-            esac
-        done
-    fi
+
+    echo -e "\n${BLUE}${BOLD}Do you want to install a desktop interface?${NC}"
+    select choice in "Yes" "No"; do
+        case ${choice} in
+            "Yes")
+                echo -e "\n${BLUE}${BOLD}Please select a desktop interface:${NC}"
+                local options
+                if [[ "${distro}" == "ubuntu" ]]; then
+                    # Hyprland and Sway are Arch-only; Ubuntu supports gnome and niri
+                    options=("gnome" "niri")
+                else
+                    mapfile -t options < <(curl -sSL "${DIREPO_RAW}/packages.yaml" | yq -e '.desktop_packages | keys | .[]' | tr -d '"')
+                fi
+                select de in "${options[@]}"; do
+                    if [[ -n "${de}" ]]; then
+                        eval "${__choice}"="${de}"
+                        return
+                    else
+                        echo -e "\n${RED}Invalid option. Please try again.${NC}\n"
+                    fi
+                done
+                ;;
+            "No")
+                printf "\nSkipping desktop interface installation.\n"
+                exit
+                ;;
+            *)
+                echo -e "\n${RED}Invalid option. Please try again.${NC}\n"
+                ;;
+        esac
+    done
 }
 
 # Function: install_rust
@@ -690,6 +667,124 @@ function configure_uv1_audio() {
 # Parameters:
 #   $1 - The distribution ID
 # Side effects: Calls configure_hardware_specific if hardware is detected.
+# Function: add_kernel_parameter
+# Description: Appends a kernel parameter to the active bootloader config
+#              (systemd-boot or GRUB). Skips if already present. Idempotent.
+# Parameters:
+#   $1 - The kernel parameter to add (e.g. "mem_sleep_default=s2idle")
+# Function: find_systemd_boot_entries
+# Description: Returns the systemd-boot loader entries directory if systemd-boot
+#              is installed, regardless of where the ESP is mounted.
+#              Checks via bootctl first, then falls back to common mount points.
+function find_systemd_boot_entries() {
+    local esp=""
+    if command -v bootctl &>/dev/null && bootctl is-installed &>/dev/null; then
+        esp=$(bootctl --print-esp-path 2>/dev/null)
+    fi
+    # Fallback: common ESP mount points
+    if [[ -z "${esp}" ]]; then
+        for mount_point in /boot /efi /boot/efi; do
+            if [[ -d "${mount_point}/loader/entries" ]]; then
+                esp="${mount_point}"
+                break
+            fi
+        done
+    fi
+    if [[ -n "${esp}" && -d "${esp}/loader/entries" ]]; then
+        echo "${esp}/loader/entries"
+    fi
+}
+
+# Function: add_kernel_parameter
+# Description: Appends a kernel parameter to the active bootloader config
+#              (systemd-boot or GRUB). Skips if already present. Idempotent.
+# Parameters:
+#   $1 - The kernel parameter to add (e.g. "mem_sleep_default=s2idle")
+function add_kernel_parameter() {
+    local param="${1}"
+    local distro
+    distro=$(detect_distro)
+
+    local entries_dir
+    entries_dir=$(find_systemd_boot_entries)
+
+    if [[ -n "${entries_dir}" ]]; then
+        local updated=0
+        for entry in "${entries_dir}"/*.conf; do
+            [[ "${entry}" == *fallback* ]] && continue
+            if [[ -z "$(grep -w "${param}" "${entry}" 2>/dev/null)" ]]; then
+                sudo sed -i "/^options / s/$/ ${param}/" "${entry}"
+                echo -e "${GREEN}Added '${param}' to ${entry}${NC}"
+                updated=1
+            fi
+        done
+        [[ "${updated}" -eq 0 ]] && echo -e "${YELLOW}'${param}' already present in systemd-boot entries${NC}"
+    elif [[ -f /etc/default/grub ]]; then
+        if [[ -z "$(grep -w "${param}" /etc/default/grub 2>/dev/null)" ]]; then
+            sudo sed -i "s/GRUB_CMDLINE_LINUX_DEFAULT=\"/GRUB_CMDLINE_LINUX_DEFAULT=\"${param} /" /etc/default/grub
+            if [[ "${distro}" == "ubuntu" ]]; then
+                sudo update-grub
+            else
+                sudo grub-mkconfig -o /boot/grub/grub.cfg
+            fi
+            echo -e "${GREEN}Added '${param}' to GRUB config${NC}"
+        else
+            echo -e "${YELLOW}'${param}' already present in GRUB config${NC}"
+        fi
+    else
+        echo -e "${YELLOW}No supported bootloader config found. Add '${param}' manually.${NC}" >&2
+    fi
+}
+
+# Function: configure_sleep_state
+# Description: Detects S0ix (Modern Standby) hardware support and optionally
+#              enables it via a kernel parameter. Prompts the user if supported.
+#              Skipped in minimal mode or if already configured.
+function configure_sleep_state() {
+    if [[ "${MINIMAL_MODE}" == "true" ]]; then
+        return
+    fi
+
+    if [[ ! -f /sys/power/mem_sleep ]]; then
+        return
+    fi
+
+    # Already using s2idle — nothing to do
+    if grep -q "\[s2idle\]" /sys/power/mem_sleep 2>/dev/null; then
+        echo -e "\n${GREEN}S0ix (Modern Standby) already active.${NC}"
+        return
+    fi
+
+    # s2idle listed but not selected — hardware supports it
+    if ! grep -q "s2idle" /sys/power/mem_sleep 2>/dev/null; then
+        echo -e "\n${YELLOW}S0ix (Modern Standby) not supported on this hardware — keeping S3.${NC}"
+        return
+    fi
+
+    echo -e "\n${BLUE}${BOLD}S0ix (Modern Standby) is supported on this hardware.${NC}"
+    echo -e "${BLUE}S0ix enables faster resume and allows the system to wake on events${NC}"
+    echo -e "${BLUE}such as plugging in an external monitor while the lid is closed.${NC}"
+    echo -e "${YELLOW}Trade-off: may increase battery drain while suspended on some hardware.${NC}"
+    echo -e "${YELLOW}It is well-supported on recent Intel and AMD Ryzen 6000+ laptops.${NC}"
+
+    select choice in "Enable S0ix (Modern Standby)" "Keep S3 (Suspend-to-RAM)"; do
+        case ${choice} in
+            "Enable S0ix (Modern Standby)")
+                add_kernel_parameter "mem_sleep_default=s2idle"
+                echo -e "\n${GREEN}S0ix enabled. Reboot to apply.${NC}"
+                return
+                ;;
+            "Keep S3 (Suspend-to-RAM)")
+                echo -e "\n${YELLOW}Keeping S3 suspend.${NC}"
+                return
+                ;;
+            *)
+                echo -e "\n${RED}Invalid option. Please try again.${NC}\n"
+                ;;
+        esac
+    done
+}
+
 function hardware_setup() {
   local distro="${1}"
   local hardware
@@ -846,12 +941,13 @@ function main() {
   create_nm_dispatcher
   hardware_setup "${distro}"
   configure_uv1_audio
+  configure_sleep_state
   post_install_configure
   select_desktop_interface desktop_interface
   
   # Only run desktop interface installation if not in minimal mode
   if [[ "${MINIMAL_MODE}" != "true" ]]; then
-    curl -sSL "${DIREPO_RAW}/install.sh" | bash -s "${distro}" "${desktop_interface}" "${use_paperwm}" "auto"
+    curl -sSL "${DIREPO_RAW}/install.sh" | bash -s "${distro}" "${desktop_interface}"
   fi
   
   echo -e "\n${GREEN}${BOLD}Installation complete!${NC}"
