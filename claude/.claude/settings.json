@@ -1,1 +1,26 @@
-{}
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $HOME/.claude/hooks/pre-flight.sh"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 $HOME/.claude/hooks/post-flight.py > $HOME/.claude/last-session.log 2>&1"
+          }
+        ]
+      }
+    ]
+  }
+}

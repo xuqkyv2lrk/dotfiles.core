@@ -12,8 +12,8 @@
 - Use clear, professional language
 - Structure documentation logically with proper headings
 - Keep explanations concise but complete
-- Use collaborative tone: write "we" instead of "you" to create a partnership feel
-- Use relative paths for file references instead of absolute paths to maintain portability
+- Use collaborative tone: write "we" instead of "you" to create a partnership feel (for example, "we could reduce" not "you could reduce")
+- Use relative paths for file references instead of absolute paths to maintain portability across different documentation systems
 
 ## Conventional Commits & Git Workflow (Global)
 - Use Conventional Commits for all commit messages following the official 1.0.0 specification
@@ -28,35 +28,46 @@
 - **50/72 Rule**: Subject line MUST be 50 characters or fewer. Body lines MUST be 72 characters or fewer.
 - Use imperative, present tense in descriptions (for example, "add login page", not "added login page").
 
-**Examples:**
-- `feat(#123): add OAuth2 login flow`
-- `fix(#456): handle null user profiles`
-- `docs(#789): update README for auth`
+Allowed `type` values:
+- `feat`: New user-facing feature
+- `fix`: Bug fix
+- `docs`: Documentation-only changes
+- `style`: Formatting or style-only changes (no logic)
+- `refactor`: Code changes that neither fix a bug nor add a feature
+- `perf`: Performance improvements
+- `test`: Adding or updating tests
+- `chore`: Maintenance, tooling, dependencies, CI, etc.
+- `revert`: Reverting a previous commit
+
+Examples:
+- `feat(PROJ-123): add OAuth2 login flow`
+- `fix(PROJ-456): handle null user profiles`
+- `docs(PROJ-789): update README for auth`
 - `chore(deps): bump express to 4.21.0`
 
-> **Note**: The scope/ticket can be any work-tracking identifier. While these examples use GitHub issue patterns (`#123`), you may use Jira keys (`PROJ-123`), Trello IDs, or any other system that tracks your tasks.
+> **Note**: The scope/ticket can be any work-tracking identifier — GitHub issue numbers (`#123`), Jira keys (`PROJ-123`), or any other system your team uses.
 
 ### Breaking Changes
 - Any breaking change MUST be clearly indicated.
 - Use either:
   - `!` after the type or scope, for example:
-    - `feat(#123)!: remove deprecated v1 API`
-    - `fix(#456)(api)!: change error response format`
+    - `feat(PROJ-123)!: remove deprecated v1 API`
+    - `fix(PROJ-456)(api)!: change error response format`
   - Or a `BREAKING CHANGE:` footer in the body, for example:
-    - Summary line: `feat(#123): add v2 user endpoint`
+    - Summary line: `feat(PROJ-123): add v2 user endpoint`
     - Footer: `BREAKING CHANGE: v1 /users endpoint has been removed`
 - The `BREAKING CHANGE:` footer MUST explain what changed and what consumers must do.
 
 ### Footers and Issue References
 - Use footers for metadata such as issue links and breaking changes ONLY.
 - Reference issues in footers using verbs such as `Closes`, `Fixes`, or `Resolves`, for example:
-  - `Closes #123`
+  - `Closes PROJ-123`
 - **PROHIBITED**: No `Co-authored-by:`, `Signed-off-by:`, AI generation notices, or similar attribution footers.
 - Place each footer on its own line after the body.
 
 ### Commit Hygiene
 - Keep each commit logically atomic: one conceptual change per commit.
-- Do not mix refactors with behavior changes unless necessary.
+- Do not mix refactors with behavior changes unless necessary; if mixed, mention both in the description or body.
 - Avoid vague messages like `wip` or `fix stuff`; clean history via squash or rewording before merging.
 - **Before merging**: Remove all AI-generated attribution footers from squash commits.
 
@@ -64,26 +75,31 @@
 - Branch names MUST follow this pattern: `<type>/<ticket-id>-<short-kebab-description>`
 - If no ticket exists, use: `<type>/<short-kebab-description>`
 
-**Examples with tickets:**
-- `feat/#123-add-oauth-login`
-- `fix/#456-fix-npe-on-user-load`
-- `docs/#789-update-readme`
-- `chore/#101-improve-ci-cache`
-- `hotfix/#202-production-500-login`
-- `release/#999-v2.3.0`
+Examples with tickets:
+- `feat/PROJ-123-add-oauth-login`
+- `fix/PROJ-456-fix-npe-on-user-load`
+- `docs/PROJ-789-update-readme`
+- `chore/PROJ-101-improve-ci-cache`
+- `hotfix/PROJ-202-production-500-login`
+- `release/PROJ-999-v2.3.0`
 
-**Branch rules:**
+Examples without tickets:
+- `feat/add-oauth-login`
+- `fix/npe-on-user-load`
+- `chore/improve-ci-cache`
+
+Branch rules:
 - Use lowercase letters and hyphens for word separation
 - Type MUST match Conventional Commits types (feat, fix, docs, chore, refactor, hotfix, release)
-- Ticket ID (or issue number) goes immediately after the type slash
+- Ticket ID goes immediately after the type slash, before the description
 
 ### Pull Requests
 - PR titles MUST follow the same format as commits: `<type>[optional scope]: <description>`
-- Use the issue/ticket ID as the scope when applicable.
+- Use ticket ID as scope when applicable
 
-**Examples:**
-- `feat(#123): add OAuth2 login flow`
-- `fix(#456): handle null user profiles`
+Examples:
+- `feat(PROJ-123): add OAuth2 login flow`
+- `fix(PROJ-456): handle null user profiles`
 - `chore(ci): switch to GitHub Actions`
 
 Recommended PR description structure:
@@ -93,9 +109,12 @@ Recommended PR description structure:
 - **Breaking Changes**: Explicitly list any breaking changes and migration steps, or state "None".
 - **Testing**: How this was tested (commands, environments, important notes).
 - **Checklist**:
-  - [ ] Tests added or updated  
-  - [ ] Documentation updated if needed  
+  - [ ] Tests added or updated
+  - [ ] Documentation updated if needed
+  - [ ] Breaking changes documented if any
   - [ ] No AI attribution footers in commits
+
+PRs SHOULD be small, focused, and pass checks before review.
 
 ### Versioning (SemVer)
 - Use Semantic Versioning: `MAJOR.MINOR.PATCH`.
@@ -103,10 +122,6 @@ Recommended PR description structure:
   - If any merged commit indicates a breaking change (`!` or `BREAKING CHANGE:`), increment MAJOR.
   - Else if there is at least one `feat` commit, increment MINOR.
   - Else, increment PATCH.
-
-**Examples:**
-- `feat(#123): add OAuth2 login flow` → MINOR bump.
-- `fix(#456): correct dashboard alignment` → PATCH bump.
 
 ### Tags and Releases
 - Release tags MUST follow `vMAJOR.MINOR.PATCH` (for example, `v1.4.0`).
@@ -117,10 +132,11 @@ Recommended PR description structure:
   ```
 
 ### Quick Reference
-- **Commits**: `<type>(#XXX): <description>` (50 chars max); body 72 chars max; NO AI footers
-- **Branches**: `<type>/#XXX-<short-description>` or `<type>/<short-description>`
-- **PRs**: Title uses Conventional Commit style with issue ID in scope
+- **Commits**: `<type>(PROJ-XXX): <description>` (50 chars max); body 72 chars max; NO AI footers
+- **Branches**: `<type>/PROJ-XXX-<short-description>` or `<type>/<short-description>`
+- **PRs**: Title uses Conventional Commit style; description follows the template above
 - **Versioning**: SemVer; breaking change → MAJOR, `feat` → MINOR, everything else → PATCH
+- **Releases**: Tag as `vMAJOR.MINOR.PATCH` with annotated tag
 
 ## Language-Specific Standards
 
@@ -158,21 +174,22 @@ Recommended PR description structure:
 #### Variable and Syntax Rules
 - Use curly braces for variable interpolation: `"${variable}"` not `"$variable"`
 - Use explicit arithmetic: `count=$((count + 1))`
+- Do not use `(())` for counts
 - Always quote variables in file operations and conditionals
 - Use UPPER_CASE for environment variables and constants
 - Use lower_case for local variables
 - Always store regex patterns in a variable before using them with `=~`
 
 #### Function Guidelines
-```
+```bash
 # Good: Clear function with minimal commenting
 function deploy_application() {
     local environment="$1"
     local app_name="${2:-myapp}"
-    
+
     # Validate environment exists in config
     [[ -f "config/${environment}.env" ]] || return 1
-    
+
     docker build -t "${app_name}" .
     docker run -d --name "${app_name}" "${app_name}"
 }
@@ -207,7 +224,7 @@ fi
 ```
 
 #### Preferred Patterns
-```
+```bash
 # Variable assignment with validation
 readonly config_file="${1:?Config file required}"
 
@@ -221,6 +238,18 @@ build_output="$(docker build . 2>&1)" || {
     echo "Build failed: ${build_output}" >&2
     exit 1
 }
+
+# Loop with proper quoting
+while IFS= read -r line; do
+    process_line "${line}"
+done < "${input_file}"
+
+# Explicit arithmetic for counters
+count=0
+for file in *.txt; do
+    count=$((count + 1))
+    process_file "${file}"
+done
 ```
 
 #### Colored Output (Catppuccin Mocha)
@@ -256,8 +285,20 @@ Usage guidelines:
 - Use `${TEXT}` and `${SUBTEXT}` for body text when emphasis or dimming is needed
 - Always include `${RESET}` after colored segments to avoid color bleed
 
+#### Commands to Use
+- `[[ ]]` for conditionals instead of `[ ]`
+- `printf` instead of `echo` for formatted output
+- `command -v` instead of `which`
+- `$(command)` instead of backticks for substitution
+
+#### ShellCheck Compliance
+- Address all shellcheck warnings before committing
+- Use shellcheck disable comments sparingly: `# shellcheck disable=SC2034`
+- Fix quoting, globbing, and variable expansion issues
+- Validate script with: `shellcheck script.sh`
+
 #### Example Script Template
-```
+```bash
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -269,14 +310,14 @@ readonly SCRIPT_DIR="$(dirname "${0}")"
 function main() {
     local environment="${1:?Environment required}"
     local app_name="${2:-defaultapp}"
-    
+
     validate_environment "${environment}"
     build_and_deploy "${app_name}" "${environment}"
 }
 
 function validate_environment() {
     local env="$1"
-    
+
     [[ -f "${SCRIPT_DIR}/config/${env}.env" ]] || {
         echo "Environment config not found: ${env}" >&2
         exit 1
@@ -286,7 +327,7 @@ function validate_environment() {
 function build_and_deploy() {
     local app="$1"
     local env="$2"
-    
+
     docker build -t "${app}:${env}" .
     docker run -d --env-file "config/${env}.env" "${app}:${env}"
 }
