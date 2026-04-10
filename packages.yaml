@@ -11,9 +11,7 @@ packages:
   - go
   - graphviz
   - cloudflared
-  - helm
   - kubectl
-  - sops
   - meson
   - nodejs
   - npm

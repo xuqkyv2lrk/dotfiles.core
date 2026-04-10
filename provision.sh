@@ -186,7 +186,7 @@ function system_update() {
       ;;
     "ubuntu")
       sudo apt-get update -y
-      sudo apt-get upgrade -y
+      sudo apt-get dist-upgrade -y
       ;;
     *)
       echo "Unsupported distribution: ${distro}"
@@ -258,11 +258,31 @@ function install_repos() {
 }
 
 # Function: install_foot_ubuntu
-# Description: Installs the latest Foot terminal emulator from source on Ubuntu,
-#              including all required build dependencies. Cleans up after install.
-# Side effects: Installs packages, builds foot, and installs terminfo.
+# Description: Installs the Foot terminal emulator on Ubuntu. Tries apt first
+#              (available in Ubuntu 24.04 universe), then falls back to building
+#              from source. The source build requires several -dev packages that
+#              can conflict with security-patched runtime libs during Ubuntu repo
+#              timing gaps, so apt is always preferred when available.
+# Side effects: Installs packages, and optionally builds foot and installs terminfo.
 function install_foot_ubuntu() {
   echo -e "\n${MAGENTA}Installing ${BOLD}foot${NC}"
+
+  # Skip if already installed (e.g. prior source build or apt install)
+  if command -v foot &>/dev/null; then
+    echo -e "${YELLOW}foot is already installed, skipping${NC}"
+    return
+  fi
+
+  # Try apt first (available in Ubuntu 24.04 universe). Avoids pulling in -dev
+  # packages that may have strict version deps conflicting with security-patched
+  # runtime libs.
+  if sudo apt-get install -y foot 2>/dev/null; then
+    echo -e "${GREEN}foot installed via apt${NC}"
+    return
+  fi
+
+  # Fall back to building from source
+  echo -e "${YELLOW}foot not available via apt, building from source...${NC}"
 
   # Install build dependencies
   echo -e "${YELLOW}Installing build dependencies for Foot...${NC}"
@@ -319,6 +339,10 @@ function install_package() {
 
   # Special case for Bitwarden on Ubuntu (no Snap)
   if [[ "${package_name}" == "bitwarden" && "${distro}" == "ubuntu" ]]; then
+    if dpkg -l bitwarden 2>/dev/null | grep -q "^ii"; then
+      echo -e "\n${YELLOW}bitwarden is already installed, skipping${NC}"
+      return
+    fi
     echo -e "\n\e[35mInstalling \e[1mBitwarden (.deb)\e[0m"
     wget -O /tmp/Bitwarden-latest.deb "https://vault.bitwarden.com/download/?app=desktop&platform=linux&variant=deb"
     sudo dpkg -i /tmp/Bitwarden-latest.deb || sudo apt-get -f install -y
@@ -409,6 +433,24 @@ function install_binaries() {
     mv bin/* "${HOME}/bin"
     cd - > /dev/null  # Return to previous directory
     rm -rf /tmp/tfenv
+    binary_installed=true
+  fi
+
+  # sops
+  if ! command -v sops &> /dev/null; then
+    echo -e "\n\e[35mInstalling \e[1msops\e[0;32m"
+    local sops_version
+    sops_version=$(curl -s https://api.github.com/repos/getsops/sops/releases/latest | grep tag_name | cut -d '"' -f 4)
+    curl -sLo /tmp/sops "https://github.com/getsops/sops/releases/download/${sops_version}/sops-${sops_version}.linux.amd64"
+    sudo install -m 755 /tmp/sops /usr/local/bin/sops
+    rm /tmp/sops
+    binary_installed=true
+  fi
+
+  # helm
+  if ! command -v helm &> /dev/null; then
+    echo -e "\n\e[35mInstalling \e[1mhelm\e[0;32m"
+    curl -s https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
     binary_installed=true
   fi
 
@@ -934,7 +976,12 @@ function main() {
   echo -e "\n\e[1;37mPreparing to install binaries...\e[0m"
   install_binaries
   echo -e "\n\e[1;37mStowing dotfile configurations...\e[0;32m"
-  stow -v */
+  # --adopt moves any conflicting files into the stow package, then symlinks them.
+  # git restore */ ensures the committed dotfiles win over whatever was on the
+  # system, scoped to stow package subdirectories only (not root files like
+  # provision.sh or packages.yaml).
+  stow --adopt -v */
+  git restore */
   install_rust
   install_media_tools "${distro}"
   install_tmux_plugins
