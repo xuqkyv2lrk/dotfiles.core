@@ -572,7 +572,11 @@ EOF
 }
 
 # Function: select_desktop_interface
-# Description: Prompts the user to select a desktop interface to install.
+# Description: Prompts the user to select a desktop configuration to apply.
+#              On Ubuntu, GNOME is already present so we ask how to configure it
+#              (apply dotfiles + optional PaperWM, or replace with Niri) rather
+#              than asking whether to "install" a desktop. On Arch, presents the
+#              full list of available desktop interfaces from packages.yaml.
 #              DE-specific options (Quickshell, PaperWM) are handled by install.sh.
 #              In minimal mode, skips selection entirely.
 function select_desktop_interface() {
@@ -586,36 +590,56 @@ function select_desktop_interface() {
         return
     fi
 
-    echo -e "\n${BLUE}${BOLD}Do you want to install a desktop interface?${NC}"
-    select choice in "Yes" "No"; do
-        case ${choice} in
-            "Yes")
-                echo -e "\n${BLUE}${BOLD}Please select a desktop interface:${NC}"
-                local options
-                if [[ "${distro}" == "ubuntu" ]]; then
-                    # Hyprland and Sway are Arch-only; Ubuntu supports gnome and niri
-                    options=("gnome" "niri")
-                else
+    if [[ "${distro}" == "ubuntu" ]]; then
+        # Ubuntu ships with GNOME — we are configuring it, not installing a DE.
+        echo -e "\n${BLUE}${BOLD}How would you like to configure your desktop?${NC}"
+        echo -e "${BLUE}Ubuntu includes GNOME by default.${NC}"
+        select de in "Configure GNOME (+ optional PaperWM)" "Install Niri (Wayland compositor)" "Skip"; do
+            case "${de}" in
+                "Configure GNOME (+ optional PaperWM)")
+                    eval "${__choice}"="gnome"
+                    return
+                    ;;
+                "Install Niri (Wayland compositor)")
+                    eval "${__choice}"="niri"
+                    return
+                    ;;
+                "Skip")
+                    printf "\nSkipping desktop configuration.\n"
+                    exit
+                    ;;
+                *)
+                    echo -e "\n${RED}Invalid option. Please try again.${NC}\n"
+                    ;;
+            esac
+        done
+    else
+        echo -e "\n${BLUE}${BOLD}Do you want to install a desktop interface?${NC}"
+        select choice in "Yes" "No"; do
+            case ${choice} in
+                "Yes")
+                    echo -e "\n${BLUE}${BOLD}Please select a desktop interface:${NC}"
+                    local options
                     mapfile -t options < <(curl -sSL "${DIREPO_RAW}/packages.yaml" | yq -e '.desktop_packages | keys | .[]' | tr -d '"')
-                fi
-                select de in "${options[@]}"; do
-                    if [[ -n "${de}" ]]; then
-                        eval "${__choice}"="${de}"
-                        return
-                    else
-                        echo -e "\n${RED}Invalid option. Please try again.${NC}\n"
-                    fi
-                done
-                ;;
-            "No")
-                printf "\nSkipping desktop interface installation.\n"
-                exit
-                ;;
-            *)
-                echo -e "\n${RED}Invalid option. Please try again.${NC}\n"
-                ;;
-        esac
-    done
+                    select de in "${options[@]}"; do
+                        if [[ -n "${de}" ]]; then
+                            eval "${__choice}"="${de}"
+                            return
+                        else
+                            echo -e "\n${RED}Invalid option. Please try again.${NC}\n"
+                        fi
+                    done
+                    ;;
+                "No")
+                    printf "\nSkipping desktop interface installation.\n"
+                    exit
+                    ;;
+                *)
+                    echo -e "\n${RED}Invalid option. Please try again.${NC}\n"
+                    ;;
+            esac
+        done
+    fi
 }
 
 # Function: install_rust
@@ -994,7 +1018,14 @@ function main() {
   
   # Only run desktop interface installation if not in minimal mode
   if [[ "${MINIMAL_MODE}" != "true" ]]; then
-    curl -sSL "${DIREPO_RAW}/install.sh" | bash -s "${distro}" "${desktop_interface}"
+    # Download to a temp file before executing so the script has access to
+    # terminal stdin. Running via curl | bash would consume stdin and break
+    # any interactive select prompts inside install.sh.
+    local di_install
+    di_install=$(mktemp --suffix=.sh)
+    curl -sSL "${DIREPO_RAW}/install.sh" -o "${di_install}"
+    bash "${di_install}" "${distro}" "${desktop_interface}"
+    rm -f "${di_install}"
   fi
   
   echo -e "\n${GREEN}${BOLD}Installation complete!${NC}"
