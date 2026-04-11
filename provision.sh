@@ -309,6 +309,57 @@ function install_foot_ubuntu() {
   rm -rf /tmp/foot
 }
 
+# Function: patch_foot_config_ubuntu
+# Description: Patches the deployed foot config for Ubuntu 24.04 (foot 1.16.x).
+#              foot 1.17 introduced resize-by-cells, cursor.unfocused-style, and
+#              [colors-dark]/[colors-light] sections. Ubuntu noble ships 1.16.2 and
+#              errors on these options at startup.
+#
+#              stow symlinks the entire ~/.config/foot directory to the dotfiles
+#              source, so we can't patch just the deployed copy without first
+#              replacing the symlink with a real directory. This function does that,
+#              then applies the patches in-place. The dotfiles source is untouched,
+#              so the 1.17 options are ready to restore when foot is upgraded.
+function patch_foot_config_ubuntu() {
+    local foot_dir="${HOME}/.config/foot"
+    local config="${foot_dir}/foot.ini"
+    local foot_version
+
+    foot_version="$(foot --version 2>/dev/null | awk '{print $3}')"
+
+    # Only patch when foot is older than 1.17
+    local major minor
+    major="$(echo "${foot_version}" | cut -d. -f1)"
+    minor="$(echo "${foot_version}" | cut -d. -f2)"
+    if [[ "${major}" -gt 1 || ( "${major}" -eq 1 && "${minor}" -ge 17 ) ]]; then
+        return 0
+    fi
+
+    echo -e "${YELLOW}foot ${foot_version} detected — patching config for 1.16.x compatibility${NC}"
+
+    # stow creates ~/.config/foot as a symlink to the package source directory.
+    # Replace it with a real directory containing copies of all files so that
+    # edits here do not propagate back to the dotfiles source.
+    if [[ -L "${foot_dir}" ]]; then
+        local stow_target
+        stow_target="$(readlink -f "${foot_dir}")"
+        local tmp_dir
+        tmp_dir="$(mktemp -d)"
+        cp -a "${stow_target}/." "${tmp_dir}/"
+        rm "${foot_dir}"
+        mv "${tmp_dir}" "${foot_dir}"
+    fi
+
+    [[ -f "${config}" ]] || return 0
+
+    # Comment out resize-by-cells (1.17+)
+    sed -i 's/^resize-by-cells=no/# resize-by-cells=no  # foot 1.17+; re-enable after upgrade/' "${config}"
+    # Comment out cursor.unfocused-style (1.17+)
+    sed -i 's/^unfocused-style=none/# unfocused-style=none  # foot 1.17+; re-enable after upgrade/' "${config}"
+    # Rename [colors-dark] to [colors] (1.17 splits into light/dark sections)
+    sed -i 's/^\[colors-dark\]/[colors] # was [colors-dark]; rename back after foot upgrade/' "${config}"
+}
+
 # Function: install_package
 # Description: Installs a package using the appropriate package manager.
 # Parameters:
@@ -1004,8 +1055,21 @@ function main() {
   # git restore */ ensures the committed dotfiles win over whatever was on the
   # system, scoped to stow package subdirectories only (not root files like
   # provision.sh or packages.yaml).
-  stow --adopt -v */
-  git restore */
+  #
+  # On Ubuntu, skip stowing the foot package. Ubuntu 24.04 ships foot 1.16.x
+  # which does not support options added in 1.17+ (resize-by-cells,
+  # cursor.unfocused-style, [colors-dark]). foot.ini is deployed as an
+  # independent (untracked) copy so it can be patched without the changes
+  # being adopted back into dotfiles on the next provision run.
+  if [[ "${distro}" == "ubuntu" ]]; then
+      mapfile -t stow_pkgs < <(find . -maxdepth 1 -mindepth 1 -type d -name '[^.]*' ! -name 'foot' -printf '%f\n')
+      stow --adopt -v "${stow_pkgs[@]}"
+      git restore "${stow_pkgs[@]}"
+      patch_foot_config_ubuntu
+  else
+      stow --adopt -v */
+      git restore */
+  fi
   install_rust
   install_media_tools "${distro}"
   install_tmux_plugins
