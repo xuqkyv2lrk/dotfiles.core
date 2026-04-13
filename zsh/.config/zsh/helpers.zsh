@@ -313,56 +313,56 @@ function gnomeimport() {
 # List all custom shell helper functions
 #***
 function helpers() {
-    local BLUE='\033[38;2;137;180;250m'
-    local MAUVE='\033[38;2;203;166;247m'
-    local GREEN='\033[38;2;166;227;161m'
-    local SUBTEXT='\033[38;2;166;173;200m'
-    local RESET='\033[0m'
+    printf "${CMOCHA_PURPLE}Custom Shell Helpers${NC}\n\n"
 
-    printf "${MAUVE}Custom Shell Helpers${RESET}\n\n"
-
-    printf "${BLUE}Search & Navigation${RESET}\n"
-    printf "  ${GREEN}%-30s${RESET} ${SUBTEXT}%s${RESET}\n" "rgj <pattern> [path]"   "ripgrep with JSON output, pretty-printed via delta"
-    printf "  ${GREEN}%-30s${RESET} ${SUBTEXT}%s${RESET}\n" "f <name>"               "find files by name, case-insensitive"
-    printf "  ${GREEN}%-30s${RESET} ${SUBTEXT}%s${RESET}\n" "r <pattern> [path]"     "search contents with rg (unrestricted, includes hidden)"
-    printf "  ${GREEN}%-30s${RESET} ${SUBTEXT}%s${RESET}\n" "h <glob> [path]"        "list hidden files matching a glob pattern"
-    printf "  ${GREEN}%-30s${RESET} ${SUBTEXT}%s${RESET}\n" "fe [dir]"               "fuzzy-pick files and open in \$EDITOR"
-    printf "  ${GREEN}%-30s${RESET} ${SUBTEXT}%s${RESET}\n" "fes <pattern>"          "fuzzy-search file contents, open at matching line"
+    printf "${CMOCHA_BLUE}Search & Navigation${NC}\n"
+    printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "rgj <pattern> [path]"   "ripgrep with JSON output, pretty-printed via delta"
+    printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "f <name>"               "find files by name, case-insensitive"
+    printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "r <pattern> [path]"     "search contents with rg (unrestricted, includes hidden)"
+    printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "h <glob> [path]"        "list hidden files matching a glob pattern"
+    printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "fe [dir]"               "fuzzy-pick files and open in \$EDITOR"
+    printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "fes <pattern>"          "fuzzy-search file contents, open at matching line"
     printf "\n"
 
-    printf "${BLUE}File Manager${RESET}\n"
-    printf "  ${GREEN}%-30s${RESET} ${SUBTEXT}%s${RESET}\n" "y [path]"               "open yazi; cd to last directory on exit"
+    printf "${CMOCHA_BLUE}File Manager${NC}\n"
+    printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "y [path]"               "open yazi; cd to last directory on exit"
     printf "\n"
 
-    printf "${BLUE}Filesystem${RESET}\n"
-    printf "  ${GREEN}%-30s${RESET} ${SUBTEXT}%s${RESET}\n" "mkcd <dir>"             "create directory and cd into it"
+    printf "${CMOCHA_BLUE}Filesystem${NC}\n"
+    printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "mkcd <dir>"             "create directory and cd into it"
     printf "\n"
 
-    printf "${BLUE}Python${RESET}\n"
-    printf "  ${GREEN}%-30s${RESET} ${SUBTEXT}%s${RESET}\n" "pip-install-save <pkg>" "install package and append to requirements.txt"
+    printf "${CMOCHA_BLUE}Python${NC}\n"
+    printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "pip-install-save <pkg>" "install package and append to requirements.txt"
     printf "\n"
 
-    printf "${BLUE}Tmux${RESET}\n"
-    printf "  ${GREEN}%-30s${RESET} ${SUBTEXT}%s${RESET}\n" "tsession <name>"        "create a tmux session via bootstrap script"
+    printf "${CMOCHA_BLUE}Tmux${NC}\n"
+    printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "tsession <name>"        "create a tmux session via bootstrap script"
     printf "\n"
 
-    printf "${BLUE}Git${RESET}\n"
-    printf "  ${GREEN}%-30s${RESET} ${SUBTEXT}%s${RESET}\n" "createbranch <name>"    "create and push a new branch"
-    printf "  ${GREEN}%-30s${RESET} ${SUBTEXT}%s${RESET}\n" "prunebranches <keep>"   "delete all local branches except the named one"
-    printf "  ${GREEN}%-30s${RESET} ${SUBTEXT}%s${RESET}\n" "mvbranch [branch]"      "rename a branch locally and on remote"
-    printf "  ${GREEN}%-30s${RESET} ${SUBTEXT}%s${RESET}\n" "rmbranch <name>"        "delete a branch locally and on remote"
+    printf "${CMOCHA_BLUE}Git${NC}\n"
+    printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "createbranch <name>"    "create and push a new branch"
+    printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "prunebranches <keep>"   "delete all local branches except the named one"
+    printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "mvbranch [branch]"      "rename a branch locally and on remote"
+    printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "rmbranch <name>"        "delete a branch locally and on remote"
     printf "\n"
 
-    printf "${BLUE}GPG${RESET}\n"
-    printf "  ${GREEN}%-30s${RESET} ${SUBTEXT}%s${RESET}\n" "egpg <uid> <file>"      "export GPG private key, AES-256 encrypted"
-    printf "  ${GREEN}%-30s${RESET} ${SUBTEXT}%s${RESET}\n" "igpg <file>"            "import encrypted GPG private key with ultimate trust"
+    printf "${CMOCHA_BLUE}AWS${NC}\n"
+    printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "setaws [profile]"       "export AWS credentials; auto-detects SSO vs API key (--help)"
+    printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "awsconsole [profile]"   "open AWS Console in a Firefox container tab (--help)"
     printf "\n"
 
-    printf "${BLUE}Utilities${RESET}\n"
-    printf "  ${GREEN}%-30s${RESET} ${SUBTEXT}%s${RESET}\n" "genuser [mixed]"        "generate random 10-char username; pass any arg for mixed case"
+    printf "${CMOCHA_BLUE}GPG${NC}\n"
+    printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "egpg <uid> <file>"      "export GPG private key, AES-256 encrypted"
+    printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "igpg <file>"            "import encrypted GPG private key with ultimate trust"
     printf "\n"
 
-    printf "${BLUE}GNOME${RESET}\n"
-    printf "  ${GREEN}%-30s${RESET} ${SUBTEXT}%s${RESET}\n" "gnomeexport [dir]"      "export dconf settings to files in dir"
-    printf "  ${GREEN}%-30s${RESET} ${SUBTEXT}%s${RESET}\n" "gnomeimport [dir]"      "import dconf settings from files in dir"
+    printf "${CMOCHA_BLUE}Utilities${NC}\n"
+    printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "opwd <item>"            "look up username and password from 1Password"
+    printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "genuser [mixed]"        "generate random 10-char username; pass any arg for mixed case"
+    printf "\n"
+
+    printf "${CMOCHA_BLUE}GNOME${NC}\n"
+    printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "gnomeexport [dir]"      "export dconf settings to files in dir"
+    printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "gnomeimport [dir]"      "import dconf settings from files in dir"
 }
