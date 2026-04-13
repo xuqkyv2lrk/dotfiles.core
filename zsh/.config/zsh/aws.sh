@@ -9,7 +9,7 @@ _pick_aws_profile() {
   local profiles=($(aws configure list-profiles 2>/dev/null))
   local profile_name
   if command -v fzf &>/dev/null; then
-    profile_name="$(printf '%s\n' "${profiles[@]}" | fzf --prompt="${CMOCHA_CYAN}Select AWS profile: ${NC}" 2>/dev/null || true)"
+    profile_name="$(printf '%s\n' "${profiles[@]}" | fzf --prompt="${CMOCHA_CYAN}Select AWS profile: ${NC}" || true)"
   else
     printf "${CMOCHA_BLUE}Available profiles:${NC}\n"
     for i in {1..${#profiles[@]}}; do
@@ -120,7 +120,7 @@ function setaws {
     aws_profiles=($(aws configure list-profiles 2>/dev/null))
     profiles+=("${aws_profiles[@]}")
     if command -v fzf &>/dev/null; then
-      profile_name="$(printf '%s\n' "${profiles[@]}" | fzf --prompt='Select AWS profile: ' 2>/dev/null || true)"
+      profile_name="$(printf '%s\n' "${profiles[@]}" | fzf --prompt='Select AWS profile: ' || true)"
     else
       for i in {1..${#profiles[@]}}; do
         printf "  %d) %s\n" $i "${profiles[$i]}"
