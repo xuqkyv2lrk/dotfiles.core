@@ -90,6 +90,26 @@ _export_credentials_manual() {
 
 function setaws {
   local profile_name="${1}"
+
+  if [[ "${profile_name}" == "-h" || "${profile_name}" == "--help" ]]; then
+    printf "Usage: setaws [profile-name]\n\n"
+    printf "Export AWS credentials for a profile as environment variables.\n\n"
+    printf "Arguments:\n"
+    printf "  profile-name  Name of an existing AWS profile (optional)\n\n"
+    printf "If no profile is given, an interactive picker is shown. The picker\n"
+    printf "also offers:\n"
+    printf "  [Create new SSO profile]  Run the AWS SSO configuration wizard\n"
+    printf "  [Create new API profile]  Create a profile from an access key/secret\n\n"
+    printf "Profile type is detected automatically:\n"
+    printf "  SSO profiles      Use 'aws configure export-credentials'; expired\n"
+    printf "                    sessions are renewed automatically via sso login\n"
+    printf "  API key profiles  Credentials read directly from the profile config;\n"
+    printf "                    conflicting SSO env vars are cleared\n\n"
+    printf "Exports: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN,\n"
+    printf "         AWS_REGION, AWS_ACCOUNT, AWS_ACCOUNT_ALIAS\n"
+    return 0
+  fi
+
   set +m
 
   # Interactive profile picker and new profile options
@@ -261,6 +281,21 @@ function setaws {
 function awsconsole {
   local profile_name="${1}"
   local container_name="${2}"
+
+  if [[ "${profile_name}" == "-h" || "${profile_name}" == "--help" ]]; then
+    printf "Usage: awsconsole [profile-name] [container-name]\n\n"
+    printf "Open the AWS Console in a Firefox container tab.\n\n"
+    printf "Arguments:\n"
+    printf "  profile-name    AWS profile to use (optional; picker shown if omitted)\n"
+    printf "  container-name  Firefox container name (default: profile-name)\n\n"
+    printf "Profile type is detected automatically:\n"
+    printf "  SSO profiles      Open via the SSO start URL with account/role params\n"
+    printf "  API key profiles  Generate a federation token and open via signin URL\n\n"
+    printf "Container color is derived deterministically from the container name.\n"
+    printf "Requires Firefox with the Multi-Account Containers extension.\n"
+    return 0
+  fi
+
   set +m
 
   local container_icon="briefcase"
