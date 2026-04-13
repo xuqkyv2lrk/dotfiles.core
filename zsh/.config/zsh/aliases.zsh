@@ -36,16 +36,14 @@ alias j="z"
 alias x="zi"
 
 # ****
-# kuberenetes
+# kubernetes
 # ****
 alias k="kubectl"
-alias kns="k config set-context --current --namespace ${1}"
 compdef __start_kubectl k
 
 # ****
 # gnome
 # ****
-alias gmpv="gnome-session-inhibit mpv ${1}"
 
 # ****
 # dotfiles git command

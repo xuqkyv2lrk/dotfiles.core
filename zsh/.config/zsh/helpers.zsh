@@ -1,19 +1,17 @@
-#!/bin/bash
-
 bold=$(tput bold)
 normal=$(tput sgr0)
 
 #***
 # Colors
 #***
-CMOCHA_RED=$'\033[38;2;237;135;150m'
+CMOCHA_RED=$'\033[38;2;243;139;168m'
 CMOCHA_GREEN=$'\033[38;2;166;227;161m'
 CMOCHA_YELLOW=$'\033[38;2;249;226;175m'
 CMOCHA_BLUE=$'\033[38;2;137;180;250m'
 CMOCHA_PURPLE=$'\033[38;2;203;166;247m'
 CMOCHA_CYAN=$'\033[38;2;148;226;213m'
 CMOCHA_BASE=$'\033[38;2;205;214;244m'
-CMOCHA_SURFACE0=$'\033[38;2;88;91;112m'
+CMOCHA_SURFACE0=$'\033[38;2;166;173;200m'
 NC=$'\033[0m'
 
 #***
@@ -70,7 +68,7 @@ function fe() {
     local search_dir="${1:-.}"
     local files
     files=$(rg --files --hidden "$search_dir" | fzf --multi --select-1 --exit-0)
-    [[ -n "$files" ]] && ${EDITOR:-vim} $files
+    [[ -n "$files" ]] && ${EDITOR:-vim} "$files"
 }
 
 function fes() {
@@ -79,10 +77,11 @@ function fes() {
         fzf --ansi --delimiter : \
             --preview 'bat --color=always {1} --highlight-line {2}' \
             --preview-window=up:60%:wrap)
-    if [ -n "$selected" ]; then
-        local file=$(echo "$selected" | cut -d: -f1)
-        local line=$(echo "$selected" | cut -d: -f2)
-        ${EDITOR:-vim} +${line} ${file}
+    if [[ -n "$selected" ]]; then
+        local file line
+        file=$(echo "$selected" | cut -d: -f1)
+        line=$(echo "$selected" | cut -d: -f2)
+        ${EDITOR:-vim} +"${line}" "${file}"
     fi
 }
 
@@ -101,12 +100,22 @@ function y() {
 #***
 # Create directory and enter it
 #***
-function mkcd() { mkdir -p "$@" && cd "$_" || exit; }
+function mkcd() { mkdir -p "$@" && cd "$_" || return 1; }
+
+#***
+# Set kubectl namespace for current context
+#***
+function kns() { k config set-context --current --namespace "$1"; }
+
+#***
+# Launch mpv with GNOME session inhibitor (prevents screensaver/sleep)
+#***
+function gmpv() { gnome-session-inhibit mpv "$1"; }
 
 #***
 # Search 1Password for object
 #***
-function opwd() { op get item $1 | jq '.details.fields[] | (select(.designation=="username").value),(select(.designation=="password").value)'; }
+function opwd() { op item get "$1" --fields label=username,label=password; }
 
 #***
 # Save Python packages into a requirements file
@@ -289,7 +298,7 @@ function gnomeimport() {
 
     input_dir="${1:-${DIDOTS}/gnome/_settings}"
 
-    if [ ! -d "${input_dir}" ]; then
+    if [[ ! -d "${input_dir}" ]]; then
         echo "Error: Directory ${input_dir} does not exist"
         return 1
     fi
@@ -297,7 +306,7 @@ function gnomeimport() {
     # Import each category from its corresponding file
     for category in "${GNOME_CATEGORIES[@]}"; do
         IFS=':' read -r dconf_path file <<< "${category}"
-        if [ -f "${input_dir}/${file}" ]; then
+        if [[ -f "${input_dir}/${file}" ]]; then
             dconf load "${dconf_path}" < "${input_dir}/${file}"
             echo "Imported ${input_dir}/${file} to $dconf_path"
         else
@@ -332,6 +341,10 @@ function helpers() {
     printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "mkcd <dir>"             "create directory and cd into it"
     printf "\n"
 
+    printf "${CMOCHA_BLUE}Kubernetes${NC}\n"
+    printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "kns <namespace>"        "set kubectl namespace for current context"
+    printf "\n"
+
     printf "${CMOCHA_BLUE}Python${NC}\n"
     printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "pip-install-save <pkg>" "install package and append to requirements.txt"
     printf "\n"
@@ -363,6 +376,7 @@ function helpers() {
     printf "\n"
 
     printf "${CMOCHA_BLUE}GNOME${NC}\n"
+    printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "gmpv <file>"            "open mpv with session inhibitor (no sleep/screensaver)"
     printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "gnomeexport [dir]"      "export dconf settings to files in dir"
     printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "gnomeimport [dir]"      "import dconf settings from files in dir"
 }

@@ -25,7 +25,12 @@ zle_highlight=('paste:none')
 # ****
 # Bash Completion
 # ****
-autoload -Uz +X compinit && compinit
+autoload -Uz compinit
+if [[ -n "${ZDOTDIR:-$HOME}/.zcompdump"(#qN.mh+24) ]]; then
+    compinit
+else
+    compinit -C
+fi
 autoload -Uz +X bashcompinit && bashcompinit
 
 # ****
@@ -42,7 +47,7 @@ plug "zsh-users/zsh-history-substring-search"
 plug "zsh-users/zsh-autosuggestions"
 plug "zsh-users/zsh-syntax-highlighting"
 
-if [ -z "$SSH_CONNECTION" ] && [ "$(tty)" != "/dev/tty1" ]; then
+if [[ -z "$SSH_CONNECTION" ]] && [[ "$(tty)" != "/dev/tty1" ]]; then
     eval "$(oh-my-posh init zsh --config ${HOME}/.config/ohmyposh/lean.yaml)"
 fi
 
@@ -54,20 +59,24 @@ PROMPT_EOL_MARK='%K{magenta} %k'
 
 zle-line-init() {
     zle -K viins
-    echo -n "${${KEYMAP/vicmd/}/(main|viins)/}"
+    echo -ne '\e[6 q'  # beam cursor in insert mode
 }
 
 zle -N zle-line-init
 
-# Remove newline from pasted text
-zle_bracketed_paste() {
-    local paste_content
-    zle .$WIDGET -N paste_content
-    paste_content="${paste_content%$'\n'}"
-    LBUFFER+="$paste_content"
+zle-keymap-select() {
+    [[ $KEYMAP == vicmd ]] && echo -ne '\e[2 q' || echo -ne '\e[6 q'
 }
 
-zle -N bracketed-paste zle_bracketed_paste
+zle -N zle-keymap-select
+
+# Strip trailing newline from pasted text
+bracketed-paste() {
+    zle .$WIDGET "$@"
+    LBUFFER="${LBUFFER%$'\n'}"
+}
+
+zle -N bracketed-paste
 
 # Start ssh-agent
 if ! pgrep -u "$USER" ssh-agent > /dev/null; then
