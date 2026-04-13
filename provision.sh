@@ -498,6 +498,22 @@ function install_binaries() {
     binary_installed=true
   fi
 
+  # yazi (not in Ubuntu apt repos — install pre-built static binary from GitHub)
+  if ! command -v yazi &>/dev/null; then
+    echo -e "\n\e[35mInstalling \e[1myazi\e[0;32m"
+    local yazi_version
+    yazi_version=$(curl -s https://api.github.com/repos/sxyazi/yazi/releases/latest | grep '"tag_name"' | cut -d '"' -f4)
+    local yazi_tmp
+    yazi_tmp=$(mktemp -d)
+    curl -sL "https://github.com/sxyazi/yazi/releases/download/${yazi_version}/yazi-x86_64-unknown-linux-musl.zip" \
+        -o "${yazi_tmp}/yazi.zip"
+    unzip -q "${yazi_tmp}/yazi.zip" -d "${yazi_tmp}"
+    sudo install -m 755 "${yazi_tmp}/yazi-x86_64-unknown-linux-musl/yazi" /usr/local/bin/yazi
+    sudo install -m 755 "${yazi_tmp}/yazi-x86_64-unknown-linux-musl/ya" /usr/local/bin/ya
+    rm -rf "${yazi_tmp}"
+    binary_installed=true
+  fi
+
   # helm
   if ! command -v helm &> /dev/null; then
     echo -e "\n\e[35mInstalling \e[1mhelm\e[0;32m"
@@ -1073,6 +1089,8 @@ function main() {
   install_rust
   install_media_tools "${distro}"
   install_tmux_plugins
+  echo -e "\n\e[1;37mInstalling yazi packages...\e[0;32m"
+  ya pkg install
   create_nm_dispatcher
   hardware_setup "${distro}"
   configure_uv1_audio

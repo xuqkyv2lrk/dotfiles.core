@@ -1,0 +1,18 @@
+[flavor]
+use = "catppuccin-mocha"
+
+[status]
+progress_label = { fg = "#1e1e2e", bold = true }
+perm_type      = { fg = "#1e1e2e" }
+perm_read      = { fg = "#1e1e2e" }
+perm_write     = { fg = "#1e1e2e" }
+perm_exec      = { fg = "#1e1e2e" }
+perm_sep       = { fg = "#1e1e2e" }
+
+[mode]
+normal_main = { fg = "#1e1e2e", bg = "#89b4fa", bold = true }
+normal_alt  = { fg = "#1e1e2e", bg = "#cba6f7" }
+select_main = { fg = "#1e1e2e", bg = "#94e2d5", bold = true }
+select_alt  = { fg = "#1e1e2e", bg = "#cba6f7" }
+unset_main  = { fg = "#1e1e2e", bg = "#f2cdcd", bold = true }
+unset_alt   = { fg = "#1e1e2e", bg = "#cba6f7" }

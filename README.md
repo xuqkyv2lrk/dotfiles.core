@@ -109,7 +109,7 @@ For servers, WSL, containers, or any headless system. Skips GUI apps and VM tool
 
 ### CLI Utilities
 
-**File Tools**: ranger (TUI file manager), eza (modern ls), fd (modern find)  
+**File Tools**: yazi (TUI file manager), eza (modern ls), fd (modern find)  
 **Search**: ripgrep (faster grep), fzf (fuzzy finder)  
 **Text**: bat (cat with syntax highlighting), jq/yq (JSON/YAML processors)  
 **Navigation**: zoxide (smarter cd), direnv  
@@ -206,7 +206,7 @@ All configs are managed with GNU Stow for easy symlink management:
 ├── foot/             # Terminal
 ├── gitconfig/        # Git settings
 ├── ohmyposh/         # Shell themes
-├── ranger/           # File manager
+├── yazi/             # File manager
 ├── tmux/             # Multiplexer
 ├── vim/              # Editor
 └── zsh/              # Shell

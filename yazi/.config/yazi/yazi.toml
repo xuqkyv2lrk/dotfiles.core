@@ -1,0 +1,28 @@
+[mgr]
+ratio          = [1, 4, 3]
+show_hidden    = true
+show_symlink   = true
+sort_by        = "natural"
+sort_dir_first = true
+linemode       = "size"
+
+[preview]
+tab_size      = 2
+max_width     = 600
+max_height    = 900
+image_filter  = "lanczos3"
+image_quality = 80
+
+[opener]
+edit = [
+    { run = '$EDITOR "$@"', block = true },
+]
+open = [
+    { run = 'xdg-open "$@"', desc = "Open" },
+]
+
+[open]
+rules = [
+    { mime = "text/*",  use = "edit" },
+    { mime = "image/*", use = "open" },
+]

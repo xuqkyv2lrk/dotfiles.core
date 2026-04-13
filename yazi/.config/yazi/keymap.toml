@@ -1,0 +1,12 @@
+# Custom keybindings — ported from ranger commands.py
+# Requires atool: aunpack (extract) and apack (compress)
+
+[[manager.prepend_keymap]]
+on   = ["e", "x"]
+run  = "shell --confirm 'aunpack $@'"
+desc = "Extract selected archives here"
+
+[[manager.prepend_keymap]]
+on   = ["e", "z"]
+run  = "shell --interactive 'apack $@'"
+desc = "Compress selected files"

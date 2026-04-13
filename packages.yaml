@@ -20,7 +20,7 @@ packages:
   - tmux
   - vim
   - pandoc
-  - ranger
+  - yazi
   - cava
   - mpc
   - mpd
@@ -83,6 +83,7 @@ exceptions:
     qemu: qemu-full
 
   ubuntu:
+    yazi: skip                # installed via binary release in install_binaries()
     cloudflared: skip
     go: golang-go
     gcc-c++: g++

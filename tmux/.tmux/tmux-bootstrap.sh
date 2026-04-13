@@ -21,8 +21,8 @@ if [ $? != 0 ]; then
 	tmux new-window -t $session -n workspace -c ~/work
 
 	window=3
-	tmux new-window -t $session -n ranger -c $HOME
-	tmux send-keys -t $sessing:$window "ranger" Enter
+	tmux new-window -t $session -n yazi -c $HOME
+	tmux send-keys -t $session:$window "yazi" Enter
 
 	tmux select-window -t $session:1
 fi
