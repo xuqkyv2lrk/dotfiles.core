@@ -4,6 +4,46 @@ bold=$(tput bold)
 normal=$(tput sgr0)
 
 #***
+# Colors
+#***
+CMOCHA_RED=$'\033[38;2;237;135;150m'
+CMOCHA_GREEN=$'\033[38;2;166;227;161m'
+CMOCHA_YELLOW=$'\033[38;2;249;226;175m'
+CMOCHA_BLUE=$'\033[38;2;137;180;250m'
+CMOCHA_PURPLE=$'\033[38;2;203;166;247m'
+CMOCHA_CYAN=$'\033[38;2;148;226;213m'
+CMOCHA_BASE=$'\033[38;2;205;214;244m'
+CMOCHA_SURFACE0=$'\033[38;2;88;91;112m'
+NC=$'\033[0m'
+
+#***
+# Spinner
+#***
+spinner_pid=""
+
+function spinner() {
+    local spinstr=("⠋" "⠙" "⠚" "⠞" "⠖" "⠦" "⠴" "⠲" "⠳" "⠓")
+    local colors=("${CMOCHA_CYAN}" "${CMOCHA_BLUE}" "${CMOCHA_PURPLE}")
+    local color
+    while :; do
+        for frame in "${spinstr[@]}"; do
+            color="${colors[RANDOM % ${#colors[@]}]}"
+            printf "\r${color}%s${NC} " "$frame"
+            sleep 0.1
+        done
+    done
+}
+
+function stop_spinner() {
+    if [[ -n "$spinner_pid" ]]; then
+        kill "$spinner_pid" 2>/dev/null
+        wait "$spinner_pid" 2>/dev/null
+        printf "\033[2K\r"
+        spinner_pid=""
+    fi
+}
+
+#***
 # rgj: Run ripgrep with JSON output and pretty-print results using delta.
 # Usage: rgj <pattern> [file ...]
 # Example: rgj TODO src/
@@ -64,9 +104,14 @@ function y() {
 function mkcd() { mkdir -p "$@" && cd "$_" || exit; }
 
 #***
+# Search 1Password for object
+#***
+function opwd() { op get item $1 | jq '.details.fields[] | (select(.designation=="username").value),(select(.designation=="password").value)'; }
+
+#***
 # Save Python packages into a requirements file
 #***
-function pip-install-save { 
+function pip-install-save {
     pip install "$1" && pip freeze | grep "$1" >> requirements.txt
 }
 

@@ -49,6 +49,43 @@ _urlencode() {
   python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1]))" "$1"
 }
 
+_is_sso_profile() {
+  local profile="$1"
+  local sso_start_url sso_account_id sso_role_name
+  sso_start_url="$(aws configure get sso_start_url --profile "$profile" 2>/dev/null)"
+  sso_account_id="$(aws configure get sso_account_id --profile "$profile" 2>/dev/null)"
+  sso_role_name="$(aws configure get sso_role_name --profile "$profile" 2>/dev/null)"
+
+  [[ -n "$sso_start_url" || -n "$sso_account_id" || -n "$sso_role_name" ]]
+}
+
+_export_credentials_manual() {
+  local profile="$1"
+  local access_key secret_key session_token region
+
+  access_key="$(aws configure get aws_access_key_id --profile "$profile" 2>/dev/null)"
+  secret_key="$(aws configure get aws_secret_access_key --profile "$profile" 2>/dev/null)"
+  session_token="$(aws configure get aws_session_token --profile "$profile" 2>/dev/null)"
+  region="$(aws configure get region --profile "$profile" 2>/dev/null)"
+
+  if [[ -n "$access_key" && -n "$secret_key" ]]; then
+    export AWS_ACCESS_KEY_ID="$access_key"
+    export AWS_SECRET_ACCESS_KEY="$secret_key"
+    if [[ -n "$session_token" ]]; then
+      export AWS_SESSION_TOKEN="$session_token"
+    else
+      unset AWS_SESSION_TOKEN
+    fi
+    if [[ -n "$region" ]]; then
+      export AWS_REGION="$region"
+    fi
+    unset AWS_PROFILE AWS_CREDENTIAL_EXPIRATION AWS_CREDENTIAL_SOURCE AWS_WEB_IDENTITY_TOKEN_FILE
+    return 0
+  else
+    return 1
+  fi
+}
+
 # --- Public Function: setaws ---
 
 function setaws {
@@ -116,7 +153,7 @@ function setaws {
     return 1
   fi
 
-  if ! aws configure list-profiles | grep -qx "${profile_name}"; then
+  if ! aws configure list-profiles 2>/dev/null | grep -qx "${profile_name}"; then
     printf "%b\n" "${CMOCHA_YELLOW}  ⚠️ Profile ${CMOCHA_PURPLE}${profile_name}${CMOCHA_YELLOW} not found${NC}"
     set -m
     return 1
@@ -124,44 +161,64 @@ function setaws {
 
   printf "\r${CMOCHA_CYAN}  Exporting credentials for ${CMOCHA_PURPLE}${profile_name}${CMOCHA_CYAN}...${NC} "
   spinner & spinner_pid=${!}
-  export_output="$(aws configure export-credentials --profile "${profile_name}" --format env 2>&1)"
-  export_exit_code=${?}
-  if [[ "${export_exit_code}" -eq 0 ]]; then
-    eval "${export_output}"
-    stop_spinner
-    printf "\r${CMOCHA_CYAN}  Exporting credentials for ${CMOCHA_PURPLE}${profile_name}${CMOCHA_CYAN}... ${CMOCHA_GREEN}✅${NC}\n"
-  else
-    stop_spinner
-    printf "\r${CMOCHA_CYAN}  Exporting credentials for ${CMOCHA_PURPLE}${profile_name}${CMOCHA_CYAN}... ${CMOCHA_RED}❌${NC}\n"
-    if [[ "${export_output}" == *"Token for"* ]] || [[ "${export_output}" == *"Token has expired"* ]] || [[ "${export_output}" == *"SSO Token: Token"* ]]; then
-      printf "\r${CMOCHA_CYAN}  Session expired or token missing. Renewing... ${CMOCHA_YELLOW}⚠️${NC}\n"
-      login_output="$(aws sso login --profile "${profile_name}" 2>&1)"
-      login_exit_code=${?}
-      echo "${login_output}" | while IFS= read -r line; do
-        printf "  %s\n" "${line}"
-      done
-      if [[ "${login_exit_code}" -eq 0 ]]; then
-        printf "\r${CMOCHA_CYAN}  Retrying export...${NC} "
-        spinner & spinner_pid=${!}
-        export_output="$(aws configure export-credentials --profile "${profile_name}" --format env 2>&1)"
-        if [[ "${?}" -eq 0 ]]; then
-          eval "${export_output}"
-          stop_spinner
-          printf "\r${CMOCHA_CYAN}  Exporting credentials for ${CMOCHA_PURPLE}${profile_name}${CMOCHA_CYAN}... ${CMOCHA_GREEN}✅${NC}\n"
+
+  if _is_sso_profile "${profile_name}"; then
+    export_output="$(aws configure export-credentials --profile "${profile_name}" --format env 2>&1)"
+    export_exit_code=${?}
+    if [[ "${export_exit_code}" -eq 0 ]]; then
+      cleaned_output="$(echo "$export_output" | sed 's/ *= */=/g')"
+      eval "${cleaned_output}"
+      stop_spinner
+      printf "\r${CMOCHA_CYAN}  Exporting credentials for ${CMOCHA_PURPLE}${profile_name}${CMOCHA_CYAN}... ${CMOCHA_GREEN}✅${NC}\n"
+      AWS_REGION="$(aws configure get region --profile "${profile_name}" 2>/dev/null)"
+      if [[ -n "${AWS_REGION}" ]]; then
+        export AWS_REGION
+      fi
+    else
+      stop_spinner
+      printf "\r${CMOCHA_CYAN}  Exporting credentials for ${CMOCHA_PURPLE}${profile_name}${CMOCHA_CYAN}... ${CMOCHA_RED}❌${NC}\n"
+      if [[ "${export_output}" == *"Token for"* ]] || [[ "${export_output}" == *"Token has expired"* ]] || [[ "${export_output}" == *"SSO Token: Token"* ]]; then
+        printf "\r${CMOCHA_CYAN}  Session expired or token missing. Renewing... ${CMOCHA_YELLOW}⚠️${NC}\n"
+        login_output="$(aws sso login --profile "${profile_name}" 2>&1)"
+        login_exit_code=${?}
+        echo "${login_output}" | while IFS= read -r line; do
+          printf "  %s\n" "${line}"
+        done
+        if [[ "${login_exit_code}" -eq 0 ]]; then
+          printf "\r${CMOCHA_CYAN}  Retrying export...${NC} "
+          spinner & spinner_pid=${!}
+          export_output="$(aws configure export-credentials --profile "${profile_name}" --format env 2>&1)"
+          if [[ "${?}" -eq 0 ]]; then
+            cleaned_output="$(echo "$export_output" | sed 's/ *= */=/g')"
+            eval "${cleaned_output}"
+            stop_spinner
+            printf "\r${CMOCHA_CYAN}  Exporting credentials for ${CMOCHA_PURPLE}${profile_name}${CMOCHA_CYAN}... ${CMOCHA_GREEN}✅${NC}\n"
+          else
+            stop_spinner
+            printf "\r${CMOCHA_CYAN}  Renewal failed... ${CMOCHA_RED}❌${NC}\n"
+            printf "  ${CMOCHA_YELLOW}%s${NC}\n" "${export_output}"
+            set -m
+            return 1
+          fi
         else
-          stop_spinner
-          printf "\r${CMOCHA_CYAN}  Renewal failed... ${CMOCHA_RED}❌${NC}\n"
-          printf "  ${CMOCHA_YELLOW}%s${NC}\n" "${export_output}"
+          printf "\r${CMOCHA_CYAN}  Auto-renew failed... ${CMOCHA_RED}❌${NC}\n"
           set -m
           return 1
         fi
       else
-        printf "\r${CMOCHA_CYAN}  Auto-renew failed... ${CMOCHA_RED}❌${NC}\n"
+        printf "  ${CMOCHA_YELLOW}⚠️ Error: %s${NC}\n" "${export_output}"
         set -m
         return 1
       fi
+    fi
+  else
+    if _export_credentials_manual "${profile_name}"; then
+      stop_spinner
+      printf "\r${CMOCHA_CYAN}  Exporting credentials for ${CMOCHA_PURPLE}${profile_name}${CMOCHA_CYAN}... ${CMOCHA_GREEN}✅${NC}\n"
     else
-      printf "  ${CMOCHA_YELLOW}⚠️ Error: %s${NC}\n" "${export_output}"
+      stop_spinner
+      printf "\r${CMOCHA_CYAN}  Exporting credentials for ${CMOCHA_PURPLE}${profile_name}${CMOCHA_CYAN}... ${CMOCHA_RED}❌${NC}\n"
+      printf "  ${CMOCHA_YELLOW}⚠️ Error: Could not retrieve credentials from profile${NC}\n"
       set -m
       return 1
     fi
