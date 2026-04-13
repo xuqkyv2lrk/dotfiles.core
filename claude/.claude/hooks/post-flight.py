@@ -5,6 +5,7 @@ Fires as a Stop hook and prints an interaction summary similar to Gemini CLI.
 """
 
 import json
+import select
 import sys
 from collections import defaultdict
 from datetime import datetime, timezone
@@ -105,7 +106,11 @@ def parse_transcript(path: str) -> dict:
 
 
 def main() -> None:
-    raw = sys.stdin.read()
+    raw = ""
+    if not sys.stdin.isatty():
+        ready, _, _ = select.select([sys.stdin], [], [], 5.0)
+        if ready:
+            raw = sys.stdin.readline()
     hook_data = {}
     if raw.strip():
         try:
