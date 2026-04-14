@@ -137,6 +137,8 @@ function detect_hardware() {
     echo "ThinkPad T480s"
   elif [[ "${system_product}" == *"ROG"* ]]; then
     echo "ROG"
+  elif [[ "${system_product}" == "XPS 13 9350" ]]; then
+    echo "XPS 13 9350"
   else
     echo "unknown"
   fi
@@ -631,6 +633,16 @@ EOF
           ;;
       esac
       echo -e "\n${BLUE}ROG packages installed. You can configure your device using ROG Control Center.${NC}"
+      ;;
+    "XPS 13 9350")
+      local script_dir
+      script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+      local firmware_src="${script_dir}/system_components/xps_13_9350/bluetooth/BCM4350C5_003.006.007.0095.1703.hcd"
+      local firmware_dst="/lib/firmware/brcm/BCM4350C5-0a5c-6412.hcd"
+      print_step "Configuring Bluetooth firmware for XPS 13 9350"
+      [[ ! -d "/lib/firmware/brcm" ]] && sudo mkdir -p /lib/firmware/brcm
+      sudo cp -f "${firmware_src}" "${firmware_dst}"
+      print_success "Bluetooth firmware installed"
       ;;
     *)
       echo -e "\n\e[1;37mNo hardware-specific configurations needed for this model\e[0m"
