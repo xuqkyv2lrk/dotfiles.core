@@ -267,12 +267,12 @@ readonly TEXT='\033[38;2;205;214;244m'    # #cdd6f4
 readonly SUBTEXT='\033[38;2;166;173;200m' # #a6adc8
 readonly RESET='\033[0m'
 
-function print_info()    { echo -e "${BLUE}[INFO]${RESET} $*"; }
-function print_success() { echo -e "${GREEN}[OK]${RESET} $*"; }
-function print_warning() { echo -e "${YELLOW}[WARN]${RESET} $*" >&2; }
-function print_error()   { echo -e "${RED}[ERROR]${RESET} $*" >&2; }
-function print_step()    { echo -e "${MAUVE}==>${RESET} $*"; }
-function print_dry_run() { echo -e "${TEAL}[DRY-RUN]${RESET} $*"; }
+function print_info()    { printf "${BLUE}[INFO]${RESET} %s\n" "$*"; }
+function print_success() { printf "${GREEN}[OK]${RESET} %s\n" "$*"; }
+function print_warning() { printf "${YELLOW}[WARN]${RESET} %s\n" "$*" >&2; }
+function print_error()   { printf "${RED}[ERROR]${RESET} %s\n" "$*" >&2; }
+function print_step()    { printf "${MAUVE}==>${RESET} %s\n" "$*"; }
+function print_dry_run() { printf "${TEAL}[DRY-RUN]${RESET} %s\n" "$*"; }
 ```
 
 Usage guidelines:
