@@ -1,5 +1,5 @@
 <div align="center">
-<img src="./dotfile.png" alt="dotfiles.core" width="250px" />
+<img src="./dotfile.png" alt="dotfiles.core" width="140px" />
 <h3>dotfiles.core</h3>
 <p>My personal dotfiles and system setup automation.</p>
 <p>
