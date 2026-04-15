@@ -30,8 +30,7 @@ cd ~/.dotfiles.core
 Stow everything at once:
 
 ```bash
-stow bat btop cava claude delta doom fastfetch foot \
-     gitconfig mpd ncmpcpp ncspot ohmyposh tmux vim yazi zsh
+stow */
 ```
 
 Or stow individual modules:
