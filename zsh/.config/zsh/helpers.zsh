@@ -344,9 +344,10 @@ function dotfiles-use-ssh() {
 
         url="$(git -C "${repo}" remote get-url origin 2>/dev/null)" || continue
         new_url="$(printf "%s" "${url}" \
-            | sed -e "s|https://gitlab.com/|${prefix}|g" \
-                  -e "s|git@gitlab.com:|${prefix}|g" \
-                  -e "s|gitlab:|${prefix}|g")"
+            | sed -E \
+                  -e "s|https://gitlab\.com/|${prefix}|g" \
+                  -e "s|git@gitlab\.com:|${prefix}|g" \
+                  -e "s|^gitlab:?|${prefix}|g")"
 
         if [[ "${url}" == "${new_url}" && "${force}" -eq 0 ]]; then
             printf "  %s: already using that remote\n" "${repo##*/}"
@@ -359,9 +360,10 @@ function dotfiles-use-ssh() {
         git -C "${repo}" submodule foreach --quiet --recursive \
             "orig=\"\$(git remote get-url origin 2>/dev/null)\"
              new=\"\$(printf '%s' \"\$orig\" \
-                 | sed -e 's|https://gitlab.com/|${prefix}|g' \
-                       -e 's|git@gitlab.com:|${prefix}|g' \
-                       -e 's|gitlab:|${prefix}|g')\"
+                 | sed -E \
+                       -e 's|https://gitlab\.com/|${prefix}|g' \
+                       -e 's|git@gitlab\.com:|${prefix}|g' \
+                       -e 's|^gitlab:?|${prefix}|g')\"
              if [ \"\$orig\" != \"\$new\" ] || [ \"${force}\" -eq 1 ]; then
                  git remote set-url origin \"\$new\" && printf '    %s: → %s\n' \"\$name\" \"\$new\"
              fi" \
