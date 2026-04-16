@@ -22,16 +22,5 @@
         ]
       }
     ]
-  },
-  "permissions": {
-    "allow": [
-      "Bash(runsnyk enable *)",
-      "Bash(runsnyk disable *)",
-      "Bash(runsnyk scan)",
-      "Bash(runsnyk scan *)",
-      "Bash(runsnyk details *)",
-      "Bash(runsnyk check)"
-    ]
-  },
-  "awsAuthRefresh": "aws sts get-caller-identity --profile aws-bedrock 2>/dev/null || aws sso login --profile aws-bedrock"
+  }
 }
