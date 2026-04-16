@@ -329,15 +329,20 @@ function dotfiles-use-ssh() {
         "${HOME}/.dotfiles.bootstrap"
     )
 
+    local prefix
+    printf "SSH remote prefix [git@gitlab.com:]: "
+    read -r prefix
+    prefix="${prefix:-git@gitlab.com:}"
+
     local repo url new_url
     for repo in "${repos[@]}"; do
         [[ -d "${repo}/.git" ]] || continue
 
         url="$(git -C "${repo}" remote get-url origin 2>/dev/null)" || continue
-        new_url="$(printf "%s" "${url}" | sed 's|https://gitlab.com/|git@gitlab.com:|g')"
+        new_url="$(printf "%s" "${url}" | sed "s|https://gitlab.com/|${prefix}|g")"
 
         if [[ "${url}" == "${new_url}" ]]; then
-            printf "  %s: already SSH\n" "${repo##*/}"
+            printf "  %s: already using that remote\n" "${repo##*/}"
         else
             git -C "${repo}" remote set-url origin "${new_url}"
             printf "  %s: → %s\n" "${repo##*/}" "${new_url}"
@@ -345,9 +350,9 @@ function dotfiles-use-ssh() {
 
         # Update any cloned submodule remotes
         git -C "${repo}" submodule foreach --quiet --recursive \
-            'orig="$(git remote get-url origin 2>/dev/null)"
-             new="$(printf "%s" "$orig" | sed "s|https://gitlab.com/|git@gitlab.com:|g")"
-             [ "$orig" != "$new" ] && git remote set-url origin "$new" && printf "    %s: → %s\n" "$name" "$new"' \
+            "orig=\"\$(git remote get-url origin 2>/dev/null)\"
+             new=\"\$(printf '%s' \"\$orig\" | sed 's|https://gitlab.com/|${prefix}|g')\"
+             [ \"\$orig\" != \"\$new\" ] && git remote set-url origin \"\$new\" && printf '    %s: → %s\n' \"\$name\" \"\$new\"" \
             2>/dev/null || true
     done
 }
