@@ -41,6 +41,15 @@ stow zsh
 stow tmux
 ```
 
+To switch all dotfiles repos (and submodules) from HTTPS to SSH after stowing `zsh`:
+
+```bash
+dotfiles-use-ssh
+```
+
+Prompts for a remote prefix — enter `git@gitlab.com` or an SSH config alias (e.g. `gitlab`).
+Applies to all dotfiles repos and any submodules in one shot.
+
 ## Repository layout
 
 ```
