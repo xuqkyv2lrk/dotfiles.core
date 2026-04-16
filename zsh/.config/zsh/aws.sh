@@ -78,6 +78,7 @@ _export_credentials_manual() {
     fi
     if [[ -n "$region" ]]; then
       export AWS_REGION="$region"
+      export AWS_DEFAULT_REGION="$region"
     fi
     unset AWS_PROFILE AWS_CREDENTIAL_EXPIRATION AWS_CREDENTIAL_SOURCE AWS_WEB_IDENTITY_TOKEN_FILE
     return 0
@@ -193,7 +194,9 @@ function setaws {
       AWS_REGION="$(aws configure get region --profile "${profile_name}" 2>/dev/null)"
       if [[ -n "${AWS_REGION}" ]]; then
         export AWS_REGION
+        export AWS_DEFAULT_REGION="${AWS_REGION}"
       fi
+      export AWS_ACTIVE_PROFILE="${profile_name}"
     else
       stop_spinner
       printf "\r${CMOCHA_CYAN}  Exporting credentials for ${CMOCHA_PURPLE}${profile_name}${CMOCHA_CYAN}... ${CMOCHA_RED}❌${NC}\n"
@@ -234,6 +237,7 @@ function setaws {
   else
     if _export_credentials_manual "${profile_name}"; then
       stop_spinner
+      export AWS_ACTIVE_PROFILE="${profile_name}"
       printf "\r${CMOCHA_CYAN}  Exporting credentials for ${CMOCHA_PURPLE}${profile_name}${CMOCHA_CYAN}... ${CMOCHA_GREEN}✅${NC}\n"
     else
       stop_spinner

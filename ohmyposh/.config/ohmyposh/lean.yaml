@@ -96,13 +96,13 @@ tooltips:
     style: plain
     foreground: "p:mauve"
     background: transparent
-    template: "{{ .Context }}{{ if .Namespace }}/{{ .Namespace }}{{ else }}default{{ end }}"
+    template: "{{ .Context }}<p:gray>//</>{{ if .Namespace }}{{ .Namespace }}{{ else }}default{{ end }}"
 
   - type: aws
-    tips: 
+    tips:
       - aws
       - terraform
     style: plain
     foreground: "p:yellow"
-    background: transparent
-    template: "{{ .Profile }}{{ if .Region }}@{{.Region}}{{end}}"
+    background: "transparent"
+    template: "{{ if .Env.AWS_ACTIVE_PROFILE }}{{ .Env.AWS_ACTIVE_PROFILE }}{{ if .Region }}@{{ .Region }}{{ end }}{{ end }}"
