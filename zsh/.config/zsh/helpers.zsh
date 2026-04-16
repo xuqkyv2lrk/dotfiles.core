@@ -319,6 +319,40 @@ function gnomeimport() {
 }
 
 #***
+# Switch all dotfiles repos (and submodules) to SSH remotes
+#***
+function dotfiles-use-ssh() {
+    local repos=(
+        "${HOME}/.dotfiles.core"
+        "${HOME}/.dotfiles.di"
+        "${HOME}/.dotfiles.nix"
+        "${HOME}/.dotfiles.bootstrap"
+    )
+
+    local repo url new_url
+    for repo in "${repos[@]}"; do
+        [[ -d "${repo}/.git" ]] || continue
+
+        url="$(git -C "${repo}" remote get-url origin 2>/dev/null)" || continue
+        new_url="$(printf "%s" "${url}" | sed 's|https://gitlab.com/|git@gitlab.com:|g')"
+
+        if [[ "${url}" == "${new_url}" ]]; then
+            printf "  %s: already SSH\n" "${repo##*/}"
+        else
+            git -C "${repo}" remote set-url origin "${new_url}"
+            printf "  %s: → %s\n" "${repo##*/}" "${new_url}"
+        fi
+
+        # Update any cloned submodule remotes
+        git -C "${repo}" submodule foreach --quiet --recursive \
+            'orig="$(git remote get-url origin 2>/dev/null)"
+             new="$(printf "%s" "$orig" | sed "s|https://gitlab.com/|git@gitlab.com:|g")"
+             [ "$orig" != "$new" ] && git remote set-url origin "$new" && printf "    %s: → %s\n" "$name" "$new"' \
+            2>/dev/null || true
+    done
+}
+
+#***
 # List all custom shell helper functions
 #***
 function helpers() {
@@ -358,6 +392,10 @@ function helpers() {
     printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "prunebranches <keep>"   "delete all local branches except the named one"
     printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "mvbranch [branch]"      "rename a branch locally and on remote"
     printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "rmbranch <name>"        "delete a branch locally and on remote"
+    printf "\n"
+
+    printf "${CMOCHA_BLUE}Dotfiles${NC}\n"
+    printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "dotfiles-use-ssh"       "switch all dotfiles remotes (+ submodules) to SSH"
     printf "\n"
 
     printf "${CMOCHA_BLUE}AWS${NC}\n"
