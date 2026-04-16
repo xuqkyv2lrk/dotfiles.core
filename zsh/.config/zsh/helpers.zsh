@@ -333,9 +333,9 @@ function dotfiles-use-ssh() {
     )
 
     local prefix
-    printf "SSH remote prefix [git@gitlab.com:]: "
+    printf "SSH remote prefix [git@gitlab.com]: "
     read -r prefix
-    prefix="${prefix:-git@gitlab.com:}"
+    prefix="${prefix:-git@gitlab.com}"
     [[ "${prefix}" != *: ]] && prefix="${prefix}:"
 
     local repo url new_url
