@@ -334,21 +334,3 @@ function build_and_deploy() {
 
 main "$@"
 ```
-
-<!--# BEGIN SNYK GLOBAL RULE -->
----
-alwaysApply: true
-always_on: true
-trigger: always_on
-applyTo: "**"
-description: Snyk Security At Inception
----
-
-# Project security best practices
-
-- Before running any Snyk scan, check if a `.runclaude.no_snyk` file exists in the current project root directory. If it does, skip all scans and report: "Snyk scanning is disabled for this project. Run `runclaude --snyk` or `runsnyk enable project` to re-enable."
-- Always run snyk_code_scan and snyk_sca_scan for new first party code or if a security scan is requested. Also run snyk_iac_scan if IaC files are present (Terraform, CloudFormation, Kubernetes YAML, ARM templates) and snyk_container_scan if a Dockerfile is present.
-- If any security issues are found based on newly introduced or modified code or dependencies, attempt to fix the issues using the results context from Snyk.
-- Rescan the code after fixing the issues to ensure that the issues were fixed and that there are no newly introduced issues.
-- Repeat this process until no new issues are found.
-<!--# END SNYK GLOBAL RULE -->

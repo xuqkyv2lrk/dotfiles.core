@@ -25,12 +25,12 @@
   },
   "permissions": {
     "allow": [
-      "mcp__Snyk__snyk_code_scan",
-      "mcp__Snyk__snyk_sca_scan",
-      "mcp__Snyk__snyk_container_scan",
-      "mcp__Snyk__snyk_iac_scan",
       "Bash(runsnyk enable *)",
-      "Bash(runsnyk disable *)"
+      "Bash(runsnyk disable *)",
+      "Bash(runsnyk scan)",
+      "Bash(runsnyk scan *)",
+      "Bash(runsnyk details *)",
+      "Bash(runsnyk check)"
     ]
   },
   "awsAuthRefresh": "aws sts get-caller-identity --profile aws-bedrock 2>/dev/null || aws sso login --profile aws-bedrock"

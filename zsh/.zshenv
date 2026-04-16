@@ -60,3 +60,5 @@ path=("${HOME}/.cargo/bin" $path)
 path=("${HOME}/.atuin/bin" $path)
 # go
 path=("${GOPATH}/bin" $path)
+# npm globals
+path=("${HOME}/.npm-global/bin" $path)

@@ -93,3 +93,5 @@ fi
 #**********
 eval "$(direnv hook zsh)"
 eval "$(atuin init zsh)"
+
+. "$HOME/.local/share/../bin/env"

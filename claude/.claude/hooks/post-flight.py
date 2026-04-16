@@ -5,6 +5,7 @@ Fires as a Stop hook and prints an interaction summary similar to Gemini CLI.
 """
 
 import json
+import os
 import select
 import sys
 from collections import defaultdict
@@ -105,6 +106,9 @@ def parse_transcript(path: str) -> dict:
     return stats
 
 
+LOG_PATH = os.path.join(os.path.expanduser("~"), ".claude", "last-session.log")
+
+
 def main() -> None:
     raw = ""
     if not sys.stdin.isatty():
@@ -117,6 +121,9 @@ def main() -> None:
             hook_data = json.loads(raw)
         except json.JSONDecodeError:
             pass
+
+    log_file = open(LOG_PATH, "w")
+    sys.stdout = log_file
 
     session_id = hook_data.get("session_id", "unknown")
     transcript_path = hook_data.get("transcript_path", "")
@@ -214,6 +221,9 @@ def main() -> None:
         f"claude --resume {session_id}{RESET}"
     )
     print()
+
+    log_file.close()
+    sys.stdout = sys.__stdout__
 
 
 if __name__ == "__main__":
