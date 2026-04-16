@@ -322,6 +322,9 @@ function gnomeimport() {
 # Switch all dotfiles repos (and submodules) to SSH remotes
 #***
 function dotfiles-use-ssh() {
+    local force=0
+    [[ "${1}" == "-f" || "${1}" == "--force" ]] && force=1
+
     local repos=(
         "${HOME}/.dotfiles.core"
         "${HOME}/.dotfiles.di"
@@ -339,9 +342,12 @@ function dotfiles-use-ssh() {
         [[ -d "${repo}/.git" ]] || continue
 
         url="$(git -C "${repo}" remote get-url origin 2>/dev/null)" || continue
-        new_url="$(printf "%s" "${url}" | sed "s|https://gitlab.com/|${prefix}|g")"
+        new_url="$(printf "%s" "${url}" \
+            | sed -e "s|https://gitlab.com/|${prefix}|g" \
+                  -e "s|git@gitlab.com:|${prefix}|g" \
+                  -e "s|gitlab:|${prefix}|g")"
 
-        if [[ "${url}" == "${new_url}" ]]; then
+        if [[ "${url}" == "${new_url}" && "${force}" -eq 0 ]]; then
             printf "  %s: already using that remote\n" "${repo##*/}"
         else
             git -C "${repo}" remote set-url origin "${new_url}"
@@ -351,8 +357,13 @@ function dotfiles-use-ssh() {
         # Update any cloned submodule remotes
         git -C "${repo}" submodule foreach --quiet --recursive \
             "orig=\"\$(git remote get-url origin 2>/dev/null)\"
-             new=\"\$(printf '%s' \"\$orig\" | sed 's|https://gitlab.com/|${prefix}|g')\"
-             [ \"\$orig\" != \"\$new\" ] && git remote set-url origin \"\$new\" && printf '    %s: → %s\n' \"\$name\" \"\$new\"" \
+             new=\"\$(printf '%s' \"\$orig\" \
+                 | sed -e 's|https://gitlab.com/|${prefix}|g' \
+                       -e 's|git@gitlab.com:|${prefix}|g' \
+                       -e 's|gitlab:|${prefix}|g')\"
+             if [ \"\$orig\" != \"\$new\" ] || [ \"${force}\" -eq 1 ]; then
+                 git remote set-url origin \"\$new\" && printf '    %s: → %s\n' \"\$name\" \"\$new\"
+             fi" \
             2>/dev/null || true
     done
 }
