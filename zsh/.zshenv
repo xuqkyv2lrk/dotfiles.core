@@ -11,6 +11,7 @@ export DISTRO=$(. /etc/os-release && echo ${ID})
 export SHELL="$(which zsh)"
 export WORK="${HOME}/work"
 export GPG_TTY="${TTY}"
+export SSH_ASKPASS_REQUIRE=never
 export COREDOTS="${HOME}/.dotfiles.core"
 export DIDOTS="${HOME}/.dotfiles.di"
 export NOTES="${HOME}/notes"
