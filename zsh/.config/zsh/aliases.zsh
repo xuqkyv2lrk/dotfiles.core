@@ -55,3 +55,4 @@ alias gconfig="g --git-dir=${DOTFILES}/.git --work-tree=${DOTFILES}"
 # nixos
 # ****
 alias nrs="sudo nixos-rebuild switch --flake \"$HOME/.dotfiles.nix#$(hostname)\""
+alias nru="sudo nix flake update --flake \"$HOME/.dotfiles.nix\" && sudo nixos-rebuild switch --flake \"$HOME/.dotfiles.nix#$(hostname)\""
