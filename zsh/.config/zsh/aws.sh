@@ -52,22 +52,48 @@ _urlencode() {
 _create_sso_profile() {
   local session_name start_url sso_region
 
-  printf "%b" "${CMOCHA_CYAN}  SSO session name: ${NC}" >&2
-  read -r session_name
-  [[ -z "${session_name}" ]] && { printf "%b\n" "${CMOCHA_YELLOW}  Aborted.${NC}" >&2; return 1; }
+  # Offer existing sso-sessions to reuse
+  local existing_sessions
+  existing_sessions="$(awk '/^\[sso-session /{gsub(/^\[sso-session |]$/, "", $0); print}' \
+    "${HOME}/.aws/config" 2>/dev/null || true)"
 
-  printf "%b" "${CMOCHA_CYAN}  SSO start URL: ${NC}" >&2
-  read -r start_url
-  [[ -z "${start_url}" ]] && { printf "%b\n" "${CMOCHA_YELLOW}  Aborted.${NC}" >&2; return 1; }
+  if [[ -n "${existing_sessions}" ]]; then
+    session_name="$(printf "%s\n[New session]\n" "${existing_sessions}" \
+      | fzf --prompt="SSO session: " --header="Select existing session or create new")" || true
+    [[ -z "${session_name}" ]] && { printf "%b\n" "${CMOCHA_YELLOW}  Aborted.${NC}" >&2; return 1; }
+  fi
 
-  printf "%b" "${CMOCHA_CYAN}  SSO region: ${NC}" >&2
-  read -r sso_region
-  [[ -z "${sso_region}" ]] && { printf "%b\n" "${CMOCHA_YELLOW}  Aborted.${NC}" >&2; return 1; }
+  if [[ -z "${session_name}" || "${session_name}" == "[New session]" ]]; then
+    printf "%b" "${CMOCHA_CYAN}  SSO session name: ${NC}" >&2
+    read -r session_name
+    [[ -z "${session_name}" ]] && { printf "%b\n" "${CMOCHA_YELLOW}  Aborted.${NC}" >&2; return 1; }
+  fi
 
-  mkdir -p "${HOME}/.aws"
-  touch "${HOME}/.aws/config"
+  # Read existing URL and region for this session if present
+  start_url="$(awk -v s="${session_name}" '
+    $0 == "[sso-session "s"]" {found=1; next}
+    /^\[/ {found=0}
+    found && $1 == "sso_start_url" {print $3; exit}
+  ' "${HOME}/.aws/config" 2>/dev/null || true)"
+  sso_region="$(awk -v s="${session_name}" '
+    $0 == "[sso-session "s"]" {found=1; next}
+    /^\[/ {found=0}
+    found && $1 == "sso_region" {print $3; exit}
+  ' "${HOME}/.aws/config" 2>/dev/null || true)"
 
-  if ! grep -q "^\[sso-session ${session_name}\]" "${HOME}/.aws/config" 2>/dev/null; then
+  if [[ -n "${start_url}" ]]; then
+    printf "%b\n" "${CMOCHA_CYAN}  Reusing session '${session_name}': ${start_url} (${sso_region})${NC}" >&2
+  else
+    printf "%b" "${CMOCHA_CYAN}  SSO start URL: ${NC}" >&2
+    read -r start_url
+    [[ -z "${start_url}" ]] && { printf "%b\n" "${CMOCHA_YELLOW}  Aborted.${NC}" >&2; return 1; }
+
+    printf "%b" "${CMOCHA_CYAN}  SSO region: ${NC}" >&2
+    read -r sso_region
+    [[ -z "${sso_region}" ]] && { printf "%b\n" "${CMOCHA_YELLOW}  Aborted.${NC}" >&2; return 1; }
+
+    mkdir -p "${HOME}/.aws"
+    touch "${HOME}/.aws/config"
     printf "\n[sso-session %s]\nsso_start_url = %s\nsso_region = %s\nsso_registration_scopes = sso:account:access\n" \
       "${session_name}" "${start_url}" "${sso_region}" >> "${HOME}/.aws/config"
   fi
@@ -75,14 +101,17 @@ _create_sso_profile() {
   printf "%b\n" "${CMOCHA_CYAN}  Logging in via SSO...${NC}" >&2
   aws sso login --sso-session "${session_name}" >&2 || return 1
 
+  # Find access token: newest cache file that has the field
   local cache_file access_token
   access_token=""
-  for cache_file in $(ls -t "${HOME}/.aws/sso/cache/"*.json 2>/dev/null); do
-    if jq -e --arg url "${start_url}" 'select(.startUrl == $url) | .accessToken' "${cache_file}" &>/dev/null; then
-      access_token="$(jq -r '.accessToken' "${cache_file}")"
+  while IFS= read -r cache_file; do
+    local token
+    token="$(jq -r '.accessToken // empty' "${cache_file}" 2>/dev/null)"
+    if [[ -n "${token}" ]]; then
+      access_token="${token}"
       break
     fi
-  done
+  done < <(ls -t "${HOME}/.aws/sso/cache/"*.json 2>/dev/null || true)
 
   if [[ -z "${access_token}" ]]; then
     printf "%b\n" "${CMOCHA_RED}  Could not find SSO access token in cache.${NC}" >&2
@@ -94,7 +123,7 @@ _create_sso_profile() {
   accounts_json="$(aws sso list-accounts --access-token "${access_token}" --region "${sso_region}" --output json 2>/dev/null)"
   account_line="$(printf "%s" "${accounts_json}" \
     | jq -r '.accountList[] | "\(.accountId)\t\(.accountName)"' \
-    | fzf --prompt="Select account: " --delimiter=$'\t' --with-nth=2)"
+    | fzf --prompt="Select account: " --delimiter=$'\t' --with-nth=2)" || true
   [[ -z "${account_line}" ]] && { printf "%b\n" "${CMOCHA_YELLOW}  No account selected. Aborted.${NC}" >&2; return 1; }
   account_id="$(printf "%s" "${account_line}" | cut -f1)"
   account_name="$(printf "%s" "${account_line}" | cut -f2)"
@@ -103,7 +132,7 @@ _create_sso_profile() {
   role_name="$(aws sso list-account-roles --access-token "${access_token}" \
     --account-id "${account_id}" --region "${sso_region}" --output json 2>/dev/null \
     | jq -r '.roleList[].roleName' \
-    | fzf --prompt="Select role for ${account_name}: ")"
+    | fzf --prompt="Select role for ${account_name}: ")" || true
   [[ -z "${role_name}" ]] && { printf "%b\n" "${CMOCHA_YELLOW}  No role selected. Aborted.${NC}" >&2; return 1; }
 
   local default_profile_name profile_name profile_region
