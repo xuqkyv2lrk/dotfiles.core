@@ -49,6 +49,85 @@ _urlencode() {
   python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1]))" "$1"
 }
 
+_create_sso_profile() {
+  local session_name start_url sso_region
+
+  printf "%b" "${CMOCHA_CYAN}  SSO session name: ${NC}" >&2
+  read -r session_name
+  [[ -z "${session_name}" ]] && { printf "%b\n" "${CMOCHA_YELLOW}  Aborted.${NC}" >&2; return 1; }
+
+  printf "%b" "${CMOCHA_CYAN}  SSO start URL: ${NC}" >&2
+  read -r start_url
+  [[ -z "${start_url}" ]] && { printf "%b\n" "${CMOCHA_YELLOW}  Aborted.${NC}" >&2; return 1; }
+
+  printf "%b" "${CMOCHA_CYAN}  SSO region: ${NC}" >&2
+  read -r sso_region
+  [[ -z "${sso_region}" ]] && { printf "%b\n" "${CMOCHA_YELLOW}  Aborted.${NC}" >&2; return 1; }
+
+  mkdir -p "${HOME}/.aws"
+  touch "${HOME}/.aws/config"
+
+  if ! grep -q "^\[sso-session ${session_name}\]" "${HOME}/.aws/config" 2>/dev/null; then
+    printf "\n[sso-session %s]\nsso_start_url = %s\nsso_region = %s\nsso_registration_scopes = sso:account:access\n" \
+      "${session_name}" "${start_url}" "${sso_region}" >> "${HOME}/.aws/config"
+  fi
+
+  printf "%b\n" "${CMOCHA_CYAN}  Logging in via SSO...${NC}" >&2
+  aws sso login --sso-session "${session_name}" >&2 || return 1
+
+  local cache_file access_token
+  access_token=""
+  for cache_file in $(ls -t "${HOME}/.aws/sso/cache/"*.json 2>/dev/null); do
+    if jq -e --arg url "${start_url}" 'select(.startUrl == $url) | .accessToken' "${cache_file}" &>/dev/null; then
+      access_token="$(jq -r '.accessToken' "${cache_file}")"
+      break
+    fi
+  done
+
+  if [[ -z "${access_token}" ]]; then
+    printf "%b\n" "${CMOCHA_RED}  Could not find SSO access token in cache.${NC}" >&2
+    return 1
+  fi
+
+  printf "%b\n" "${CMOCHA_CYAN}  Loading accounts...${NC}" >&2
+  local accounts_json account_line account_id account_name
+  accounts_json="$(aws sso list-accounts --access-token "${access_token}" --region "${sso_region}" --output json 2>/dev/null)"
+  account_line="$(printf "%s" "${accounts_json}" \
+    | jq -r '.accountList[] | "\(.accountId)\t\(.accountName)"' \
+    | fzf --prompt="Select account: " --delimiter=$'\t' --with-nth=2)"
+  [[ -z "${account_line}" ]] && { printf "%b\n" "${CMOCHA_YELLOW}  No account selected. Aborted.${NC}" >&2; return 1; }
+  account_id="$(printf "%s" "${account_line}" | cut -f1)"
+  account_name="$(printf "%s" "${account_line}" | cut -f2)"
+
+  local role_name
+  role_name="$(aws sso list-account-roles --access-token "${access_token}" \
+    --account-id "${account_id}" --region "${sso_region}" --output json 2>/dev/null \
+    | jq -r '.roleList[].roleName' \
+    | fzf --prompt="Select role for ${account_name}: ")"
+  [[ -z "${role_name}" ]] && { printf "%b\n" "${CMOCHA_YELLOW}  No role selected. Aborted.${NC}" >&2; return 1; }
+
+  local default_profile_name profile_name profile_region
+  default_profile_name="$(printf "%s" "${account_name}" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')"
+  printf "%b" "${CMOCHA_CYAN}  Profile name [${default_profile_name}]: ${NC}" >&2
+  read -r profile_name
+  profile_name="${profile_name:-${default_profile_name}}"
+
+  printf "%b" "${CMOCHA_CYAN}  Default region [us-east-1]: ${NC}" >&2
+  read -r profile_region
+  profile_region="${profile_region:-us-east-1}"
+
+  if grep -q "^\[profile ${profile_name}\]" "${HOME}/.aws/config" 2>/dev/null; then
+    printf "%b\n" "${CMOCHA_YELLOW}  Profile '${profile_name}' already exists, skipping write.${NC}" >&2
+  else
+    printf "\n[profile %s]\nsso_session = %s\nsso_account_id = %s\nsso_role_name = %s\nregion = %s\n" \
+      "${profile_name}" "${session_name}" "${account_id}" "${role_name}" "${profile_region}" \
+      >> "${HOME}/.aws/config"
+    printf "%b\n" "${CMOCHA_GREEN}  Created profile '${profile_name}'.${NC}" >&2
+  fi
+
+  printf "%s" "${profile_name}"
+}
+
 _is_sso_profile() {
   local profile="$1"
   local sso_start_url sso_account_id sso_role_name
@@ -136,15 +215,9 @@ function setaws {
       profile_name="${profiles[$selection]}"
     fi
     if [[ "${profile_name}" == "[Create new SSO profile]" ]]; then
-      printf "%b\n" "${CMOCHA_CYAN}  Launching AWS SSO profile creation wizard...${NC}"
-      aws configure sso
-      if [[ $? -ne 0 ]]; then
-        printf "%b\n" "${CMOCHA_RED}  ❌ SSO profile creation failed or was cancelled.${NC}"
-        set -m
-        return 1
-      fi
-      setaws
-      return
+      local new_sso_profile
+      new_sso_profile="$(_create_sso_profile)" || { set -m; return 1; }
+      profile_name="${new_sso_profile}"
     elif [[ "${profile_name}" == "[Create new API profile]" ]]; then
       printf "%b\n" "${CMOCHA_CYAN}  Creating new API-based profile...${NC}"
       printf "%b" "${CMOCHA_CYAN}  Enter a name for the new profile: ${NC}"
