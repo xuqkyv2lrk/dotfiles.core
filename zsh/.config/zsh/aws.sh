@@ -1,45 +1,74 @@
-_get_container_color() {
-  local name="$1"
-  local colors=("blue" "turquoise" "green" "yellow" "orange" "red" "pink" "purple")
-  local idx=$(( $(printf "%s" "$name" | sha256sum | awk '{print "0x"substr($1,1,8)}') % ${#colors[@]} ))
-  echo "${colors[$idx]}"
+#!/usr/bin/env bash
+
+# Color codes
+CMOCHA_RED='\033[0;31m'
+CMOCHA_GREEN='\033[0;32m'
+CMOCHA_YELLOW='\033[0;33m'
+CMOCHA_BLUE='\033[0;34m'
+CMOCHA_PURPLE='\033[0;35m'
+CMOCHA_CYAN='\033[0;36m'
+NC='\033[0m'
+
+: "$CMOCHA_RED" "$CMOCHA_YELLOW" "$CMOCHA_BLUE"
+
+# --- Internal Helpers ---
+
+spinner() {
+  local delay=0.1
+  local spinstr="|/-\\"
+  tput civis
+  while true; do
+    local temp="${spinstr#?}"
+    printf "%b[%c]  " "${NC}" "$spinstr" >&2
+    spinstr="$temp${spinstr%"$temp"}"
+    sleep "$delay"
+    printf "\b\b\b\b\b" >&2
+  done
 }
 
-_pick_aws_profile() {
-  local profiles=($(aws configure list-profiles 2>/dev/null))
-  local profile_name
-  if command -v fzf &>/dev/null; then
-    profile_name="$(printf '%s\n' "${profiles[@]}" | fzf --prompt="${CMOCHA_CYAN}Select AWS profile: ${NC}" || true)"
+stop_spinner() {
+  tput cnorm
+  if [[ -n "${spinner_pid:-}" ]]; then
+    kill "$spinner_pid" > /dev/null 2>&1
+    wait "$spinner_pid" > /dev/null 2>&1
+    printf "\b\b\b\b\b\033[K" >&2
+    unset spinner_pid
+  fi
+}
+
+_smart_picker() {
+  local prompt="$1"
+  if command -v fuzzel &>/dev/null; then
+    fuzzel -d --prompt="$prompt" 2>/dev/null || fzf --prompt="$prompt"
   else
-    printf "${CMOCHA_BLUE}Available profiles:${NC}\n"
-    for i in {1..${#profiles[@]}}; do
-      printf "  %s%d) %s${NC}\n" "${CMOCHA_CYAN}" "$i" "${profiles[$i]}"
-    done
-    printf "${CMOCHA_CYAN}  Enter the number of the profile to use: ${NC}"
-    read selection
-    if [[ ! "${selection}" =~ '^[0-9]+$' ]] || (( selection < 1 || selection > ${#profiles[@]} )); then
-      printf "${CMOCHA_YELLOW}  ⚠️ Invalid selection. Aborting.${NC}\n"
-      return 1
-    fi
-    profile_name="${profiles[$selection]}"
+    fzf --prompt="$prompt"
   fi
-  if [[ -z "${profile_name}" ]]; then
-    printf "${CMOCHA_YELLOW}  ⚠️ No profile selected. Aborting.${NC}\n"
-    return 1
+}
+
+# --- PORTABLE ZSH/BASH READ HELPER ---
+# Uses 'vared' for Zsh (full backspace support) and 'read -e' for Bash
+_prompt_read() {
+  local prompt_text="$1"
+  local var_name="$2"
+  local default_val="$3"
+
+  if [[ -n "$ZSH_VERSION" ]]; then
+    # Create the variable first so vared has something to edit
+    eval "$var_name=\"$default_val\""
+    # vared -p provides the prompt and handles line editing natively
+    vared -p "$prompt_text" "$var_name"
+  else
+    # Bash fallback with readline support
+    read -re -p "$prompt_text" -i "$default_val" "$var_name"
   fi
-  echo "$profile_name"
 }
 
 _get_sso_start_url() {
   local profile="$1"
   local sso_session
-  sso_session="$(aws configure get sso_session --profile "$profile" 2>/dev/null)"
+  sso_session=$(aws configure get sso_session --profile "$profile" 2>/dev/null)
   if [[ -n "$sso_session" ]]; then
-    awk -v session="$sso_session" '
-      $0 ~ "\\[sso-session "session"\\]" {found=1; next}
-      /^\[.*\]/ {found=0}
-      found && $1 == "sso_start_url" {print $3; exit}
-    ' ~/.aws/config
+    awk -v session="$sso_session" '$0 ~ "\\[sso-session "session"\\]" {found=1; next} /^\[.*\]/ {found=0} found && $1 == "sso_start_url" {print $3; exit}' ~/.aws/config
   else
     aws configure get sso_start_url --profile "$profile" 2>/dev/null
   fi
@@ -49,459 +78,164 @@ _urlencode() {
   python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1]))" "$1"
 }
 
-_create_sso_profile() {
-  local session_name start_url sso_region
+_activate_profile() {
+  local profile="$1"
+  local silent="${2:-false}"
 
-  # Offer existing sso-sessions to reuse
-  local existing_sessions
-  existing_sessions="$(awk '/^\[sso-session /{gsub(/^\[sso-session |]$/, "", $0); print}' \
-    "${HOME}/.aws/config" 2>/dev/null || true)"
+  unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_PROFILE 
+  unset AWS_REGION AWS_DEFAULT_REGION AWS_CREDENTIAL_EXPIRATION AWS_VAULT
+
+  if [[ "$silent" != "true" ]]; then
+    printf "%b Exporting %b%s %b" "${CMOCHA_CYAN}" "${CMOCHA_PURPLE}" "$profile" "${NC}" >&2
+    spinner & spinner_pid=$!
+    disown "$spinner_pid" 2>/dev/null
+  fi
+
+  local target_region
+  target_region=$(aws configure get region --profile "$profile" 2>/dev/null)
+
+  if [[ -n "$(aws configure get sso_account_id --profile "$profile" 2>/dev/null)" ]]; then
+    local export_cmd
+    export_cmd=$(aws configure export-credentials --profile "$profile" --format env 2>/dev/null)
+    
+    if [[ -n "$export_cmd" ]]; then
+       eval "${export_cmd// *= /=}"
+       export AWS_REGION="${target_region:-us-east-1}"
+       export AWS_DEFAULT_REGION="${target_region:-us-east-1}"
+       export AWS_PROFILE="$profile"
+    else
+       if [[ "$silent" != "true" ]]; then
+         stop_spinner; printf "%b[failed]%b SSO session expired. Run: aws sso login --profile %s\n" "${CMOCHA_RED}" "${NC}" "$profile"
+       fi
+       return 1
+    fi
+  else
+    local val_id val_key
+    val_id=$(aws configure get aws_access_key_id --profile "$profile" 2>/dev/null)
+    val_key=$(aws configure get aws_secret_access_key --profile "$profile" 2>/dev/null)
+    
+    export AWS_ACCESS_KEY_ID="$val_id"
+    export AWS_SECRET_ACCESS_KEY="$val_key"
+    export AWS_REGION="${target_region:-us-east-1}"
+    export AWS_DEFAULT_REGION="${target_region:-us-east-1}"
+    export AWS_PROFILE="$profile"
+  fi
+
+  if [[ "$silent" != "true" ]]; then
+    stop_spinner
+    printf "%b[done]%b\n" "${CMOCHA_GREEN}" "${NC}"
+  fi
+
+  export AWS_ACTIVE_PROFILE="$profile"
+  echo "$profile" > ~/.aws/.active_profile
+  return 0
+}
+
+_create_sso_profile() {
+  local session_name start_url sso_region existing_sessions
+  existing_sessions=$(awk '/^\[sso-session /{gsub(/^\[sso-session |]$/, "", $0); print}' "${HOME}/.aws/config" 2>/dev/null)
 
   if [[ -n "${existing_sessions}" ]]; then
-    session_name="$(printf "%s\n[New session]\n" "${existing_sessions}" \
-      | fzf --prompt="SSO session: " --header="Select existing session or create new")" || true
-    [[ -z "${session_name}" ]] && { printf "%b\n" "${CMOCHA_YELLOW}  Aborted.${NC}" >&2; return 1; }
+    session_name=$(printf "%s\n[New session]\n" "${existing_sessions}" | _smart_picker "SSO session: ")
   fi
 
   if [[ -z "${session_name}" || "${session_name}" == "[New session]" ]]; then
-    printf "%b" "${CMOCHA_CYAN}  SSO session name: ${NC}" >&2
-    read -r session_name
-    [[ -z "${session_name}" ]] && { printf "%b\n" "${CMOCHA_YELLOW}  Aborted.${NC}" >&2; return 1; }
+    _prompt_read "$(printf "%bSSO session name: %b" "${CMOCHA_CYAN}" "${NC}")" session_name ""
   fi
+  [[ -z "${session_name}" ]] && return 1
 
-  # Read existing URL and region for this session if present
-  start_url="$(awk -v s="${session_name}" '
-    $0 == "[sso-session "s"]" {found=1; next}
-    /^\[/ {found=0}
-    found && $1 == "sso_start_url" {print $3; exit}
-  ' "${HOME}/.aws/config" 2>/dev/null || true)"
-  sso_region="$(awk -v s="${session_name}" '
-    $0 == "[sso-session "s"]" {found=1; next}
-    /^\[/ {found=0}
-    found && $1 == "sso_region" {print $3; exit}
-  ' "${HOME}/.aws/config" 2>/dev/null || true)"
-
-  if [[ -n "${start_url}" ]]; then
-    printf "%b\n" "${CMOCHA_CYAN}  Reusing session '${session_name}': ${start_url} (${sso_region})${NC}" >&2
+  start_url=$(awk -v s="$session_name" '$0 == "[sso-session "s"]" {found=1; next} /^\[/ {found=0} found && $1 == "sso_start_url" {print $3; exit}' ~/.aws/config)
+  
+  if [[ -z "${start_url}" ]]; then
+    _prompt_read "$(printf "%bSSO start URL: %b" "${CMOCHA_CYAN}" "${NC}")" start_url ""
+    _prompt_read "$(printf "%bSSO region: %b" "${CMOCHA_CYAN}" "${NC}")" sso_region "us-west-2"
+    aws configure set sso_start_url "$start_url" --sso-session "$session_name"
+    aws configure set sso_region "$sso_region" --sso-session "$session_name"
+    aws configure set sso_registration_scopes "sso:account:access" --sso-session "$session_name"
   else
-    printf "%b" "${CMOCHA_CYAN}  SSO start URL: ${NC}" >&2
-    read -r start_url
-    [[ -z "${start_url}" ]] && { printf "%b\n" "${CMOCHA_YELLOW}  Aborted.${NC}" >&2; return 1; }
-
-    printf "%b" "${CMOCHA_CYAN}  SSO region: ${NC}" >&2
-    read -r sso_region
-    [[ -z "${sso_region}" ]] && { printf "%b\n" "${CMOCHA_YELLOW}  Aborted.${NC}" >&2; return 1; }
-
-    mkdir -p "${HOME}/.aws"
-    touch "${HOME}/.aws/config"
-    printf "\n[sso-session %s]\nsso_start_url = %s\nsso_region = %s\nsso_registration_scopes = sso:account:access\n" \
-      "${session_name}" "${start_url}" "${sso_region}" >> "${HOME}/.aws/config"
+    sso_region=$(awk -v s="$session_name" '$0 == "[sso-session "s"]" {found=1; next} /^\[/ {found=0} found && $1 == "sso_region" {print $3; exit}' ~/.aws/config)
   fi
 
-  printf "%b\n" "${CMOCHA_CYAN}  Logging in via SSO...${NC}" >&2
-  aws sso login --sso-session "${session_name}" >&2 || return 1
+  local access_token=""
+  local now_utc=$(date -u +%s)
+  access_token=$(find "${HOME}/.aws/sso/cache/" -name "*.json" -type f -printf "%T@ %p\n" 2>/dev/null | sort -rn | cut -d' ' -f2- | xargs -r jq -r --arg now "$now_utc" 'select(.accessToken and (.expiresAt | fromdateiso8601 > ($now | tonumber))) | .accessToken' 2>/dev/null | head -n 1)
 
-  # Find access token: newest cache file that has the field
-  local cache_file access_token
-  access_token=""
-  while IFS= read -r cache_file; do
-    local token
-    token="$(jq -r '.accessToken // empty' "${cache_file}" 2>/dev/null)"
-    if [[ -n "${token}" ]]; then
-      access_token="${token}"
-      break
-    fi
-  done < <(ls -t "${HOME}/.aws/sso/cache/"*.json 2>/dev/null || true)
-
-  if [[ -z "${access_token}" ]]; then
-    printf "%b\n" "${CMOCHA_RED}  Could not find SSO access token in cache.${NC}" >&2
-    return 1
+  if [[ -z "$access_token" ]]; then
+    aws sso login --sso-session "${session_name}" >&2 || return 1
+    local attempts=0
+    printf "%b Searching cache %b" "${CMOCHA_CYAN}" "${NC}" >&2
+    spinner & spinner_pid=$!
+    disown "$spinner_pid" 2>/dev/null
+    while [[ -z "$access_token" && $attempts -lt 10 ]]; do
+      access_token=$(find "${HOME}/.aws/sso/cache/" -name "*.json" -type f -printf "%T@ %p\n" 2>/dev/null | sort -rn | cut -d' ' -f2- | xargs -r jq -r 'select(.accessToken != null) | .accessToken' 2>/dev/null | head -n 1)
+      if [[ -z "$access_token" ]]; then sleep 1; ((attempts++)); fi
+    done
+    stop_spinner; printf "%b[done]%b\n" "${CMOCHA_GREEN}" "${NC}" >&2
   fi
 
-  printf "%b\n" "${CMOCHA_CYAN}  Loading accounts...${NC}" >&2
-  local accounts_json account_line account_id account_name
-  accounts_json="$(aws sso list-accounts --access-token "${access_token}" --region "${sso_region}" --output json 2>/dev/null)"
-  account_line="$(printf "%s" "${accounts_json}" \
-    | jq -r '.accountList[] | "\(.accountId)\t\(.accountName)"' \
-    | fzf --prompt="Select account: " --delimiter=$'\t' --with-nth=2)" || true
-  [[ -z "${account_line}" ]] && { printf "%b\n" "${CMOCHA_YELLOW}  No account selected. Aborted.${NC}" >&2; return 1; }
-  account_id="$(printf "%s" "${account_line}" | cut -f1)"
-  account_name="$(printf "%s" "${account_line}" | cut -f2)"
+  [[ -z "${access_token}" ]] && return 1
 
-  local role_name
-  role_name="$(aws sso list-account-roles --access-token "${access_token}" \
-    --account-id "${account_id}" --region "${sso_region}" --output json 2>/dev/null \
-    | jq -r '.roleList[].roleName' \
-    | fzf --prompt="Select role for ${account_name}: ")" || true
-  [[ -z "${role_name}" ]] && { printf "%b\n" "${CMOCHA_YELLOW}  No role selected. Aborted.${NC}" >&2; return 1; }
+  printf "%b Loading accounts %b" "${CMOCHA_CYAN}" "${NC}" >&2
+  spinner & spinner_pid=$!
+  disown "$spinner_pid" 2>/dev/null
+  local accounts_json=$(aws sso list-accounts --access-token "${access_token}" --region "${sso_region}" --output json 2>/dev/null)
+  stop_spinner; printf "%b[done]%b\n" "${CMOCHA_GREEN}" "${NC}" >&2
 
-  local default_profile_name profile_name profile_region
-  default_profile_name="$(printf "%s" "${account_name}" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')"
-  printf "%b" "${CMOCHA_CYAN}  Profile name [${default_profile_name}]: ${NC}" >&2
-  read -r profile_name
-  profile_name="${profile_name:-${default_profile_name}}"
+  local account_line=$(echo "$accounts_json" | jq -r '.accountList[] | "\(.accountId)\t\(.accountName)"' | _smart_picker "Account: ")
+  [[ -z "${account_line}" ]] && return 1
+  local account_id=$(echo "$account_line" | cut -f1); local account_name=$(echo "$account_line" | cut -f2)
+  
+  printf "%b Loading roles %b" "${CMOCHA_CYAN}" "${NC}" >&2
+  spinner & spinner_pid=$!
+  disown "$spinner_pid" 2>/dev/null
+  local roles_json=$(aws sso list-account-roles --access-token "${access_token}" --account-id "${account_id}" --region "${sso_region}" --output json 2>/dev/null)
+  stop_spinner; printf "%b[done]%b\n" "${CMOCHA_GREEN}" "${NC}" >&2
 
-  printf "%b" "${CMOCHA_CYAN}  Default region [us-east-1]: ${NC}" >&2
-  read -r profile_region
-  profile_region="${profile_region:-us-east-1}"
+  local role_name=$(echo "$roles_json" | jq -r '.roleList[].roleName' | _smart_picker "Role: ")
+  [[ -z "${role_name}" ]] && return 1
 
-  if grep -q "^\[profile ${profile_name}\]" "${HOME}/.aws/config" 2>/dev/null; then
-    printf "%b\n" "${CMOCHA_YELLOW}  Profile '${profile_name}' already exists, skipping write.${NC}" >&2
-  else
-    printf "\n[profile %s]\nsso_session = %s\nsso_account_id = %s\nsso_role_name = %s\nregion = %s\n" \
-      "${profile_name}" "${session_name}" "${account_id}" "${role_name}" "${profile_region}" \
-      >> "${HOME}/.aws/config"
-    printf "%b\n" "${CMOCHA_GREEN}  Created profile '${profile_name}'.${NC}" >&2
-  fi
+  local profile_name
+  _prompt_read "$(printf "%bProfile name: %b" "${CMOCHA_CYAN}" "${NC}")" profile_name "$account_name"
+  profile_name=$(echo "$profile_name" | tr ' ' '-' | tr '[:upper:]' '[:lower:]')
 
-  printf "%s" "${profile_name}"
+  local profile_region
+  _prompt_read "$(printf "%bDefault region: %b" "${CMOCHA_CYAN}" "${NC}")" profile_region "$sso_region"
+
+  aws configure set sso_session "$session_name" --profile "$profile_name"
+  aws configure set sso_account_id "$account_id" --profile "$profile_name"
+  aws configure set sso_role_name "$role_name" --profile "$profile_name"
+  aws configure set region "$profile_region" --profile "$profile_name"
+
+  _activate_profile "$profile_name"
 }
-
-_is_sso_profile() {
-  local profile="$1"
-  local sso_start_url sso_account_id sso_role_name
-  sso_start_url="$(aws configure get sso_start_url --profile "$profile" 2>/dev/null)"
-  sso_account_id="$(aws configure get sso_account_id --profile "$profile" 2>/dev/null)"
-  sso_role_name="$(aws configure get sso_role_name --profile "$profile" 2>/dev/null)"
-
-  [[ -n "$sso_start_url" || -n "$sso_account_id" || -n "$sso_role_name" ]]
-}
-
-_export_credentials_manual() {
-  local profile="$1"
-  local access_key secret_key session_token region
-
-  access_key="$(aws configure get aws_access_key_id --profile "$profile" 2>/dev/null)"
-  secret_key="$(aws configure get aws_secret_access_key --profile "$profile" 2>/dev/null)"
-  session_token="$(aws configure get aws_session_token --profile "$profile" 2>/dev/null)"
-  region="$(aws configure get region --profile "$profile" 2>/dev/null)"
-
-  if [[ -n "$access_key" && -n "$secret_key" ]]; then
-    export AWS_ACCESS_KEY_ID="$access_key"
-    export AWS_SECRET_ACCESS_KEY="$secret_key"
-    if [[ -n "$session_token" ]]; then
-      export AWS_SESSION_TOKEN="$session_token"
-    else
-      unset AWS_SESSION_TOKEN
-    fi
-    if [[ -n "$region" ]]; then
-      export AWS_REGION="$region"
-      export AWS_DEFAULT_REGION="$region"
-    fi
-    unset AWS_PROFILE AWS_CREDENTIAL_EXPIRATION AWS_CREDENTIAL_SOURCE AWS_WEB_IDENTITY_TOKEN_FILE
-    return 0
-  else
-    return 1
-  fi
-}
-
-# --- Public Function: setaws ---
 
 function setaws {
-  local profile_name="${1}"
-
-  if [[ "${profile_name}" == "-h" || "${profile_name}" == "--help" ]]; then
-    printf "Usage: setaws [profile-name]\n\n"
-    printf "Export AWS credentials for a profile as environment variables.\n\n"
-    printf "Arguments:\n"
-    printf "  profile-name  Name of an existing AWS profile (optional)\n\n"
-    printf "If no profile is given, an interactive picker is shown. The picker\n"
-    printf "also offers:\n"
-    printf "  [Create new SSO profile]  Run the AWS SSO configuration wizard\n"
-    printf "  [Create new API profile]  Create a profile from an access key/secret\n\n"
-    printf "Profile type is detected automatically:\n"
-    printf "  SSO profiles      Use 'aws configure export-credentials'; expired\n"
-    printf "                    sessions are renewed automatically via sso login\n"
-    printf "  API key profiles  Credentials read directly from the profile config;\n"
-    printf "                    conflicting SSO env vars are cleared\n\n"
-    printf "Exports: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN,\n"
-    printf "         AWS_REGION, AWS_ACCOUNT, AWS_ACCOUNT_ALIAS\n"
-    return 0
-  fi
-
-  set +m
-
-  # Interactive profile picker and new profile options
+  [[ -n "$ZSH_VERSION" ]] && setopt localoptions no_notify no_monitor
+  
+  local profile_name="${1:-}"
   if [[ -z "${profile_name}" ]]; then
-    local profiles
-    profiles=("[Create new API profile]" "[Create new SSO profile]")
-    local aws_profiles
-    aws_profiles=($(aws configure list-profiles 2>/dev/null))
-    profiles+=("${aws_profiles[@]}")
-    if command -v fzf &>/dev/null; then
-      profile_name="$(printf '%s\n' "${profiles[@]}" | fzf --prompt='Select AWS profile: ' || true)"
-    else
-      for i in {1..${#profiles[@]}}; do
-        printf "  %d) %s\n" $i "${profiles[$i]}"
-      done
-      printf "%b" "${CMOCHA_CYAN}  Enter the number of the profile to use: ${NC}"
-      read selection
-      if [[ ! "${selection}" =~ '^[0-9]+$' ]] || (( selection < 1 || selection > ${#profiles[@]} )); then
-        printf "%b\n" "${CMOCHA_YELLOW}  ⚠️ Invalid selection. Aborting.${NC}"
-        set -m
-        return 1
-      fi
-      profile_name="${profiles[$selection]}"
-    fi
-    if [[ "${profile_name}" == "[Create new SSO profile]" ]]; then
-      local new_sso_profile
-      new_sso_profile="$(_create_sso_profile)" || { set -m; return 1; }
-      profile_name="${new_sso_profile}"
-    elif [[ "${profile_name}" == "[Create new API profile]" ]]; then
-      printf "%b\n" "${CMOCHA_CYAN}  Creating new API-based profile...${NC}"
-      printf "%b" "${CMOCHA_CYAN}  Enter a name for the new profile: ${NC}"
-      read new_profile
-      printf "%b" "${CMOCHA_CYAN}  Enter AWS Access Key ID: ${NC}"
-      read access_key
-      printf "%b" "${CMOCHA_CYAN}  Enter AWS Secret Access Key: ${NC}"
-      read -s secret_key
-      printf "\n"
-      printf "%b" "${CMOCHA_CYAN}  Enter default region (e.g. us-east-1): ${NC}"
-      read region
-      aws configure set aws_access_key_id "${access_key}" --profile "${new_profile}"
-      aws configure set aws_secret_access_key "${secret_key}" --profile "${new_profile}"
-      aws configure set region "${region}" --profile "${new_profile}"
-      printf "%b\n" "${CMOCHA_GREEN}  ✅ Created new API profile: ${new_profile}${NC}"
-      profile_name="${new_profile}"
-    elif [[ -z "${profile_name}" ]]; then
-      printf "%b\n" "${CMOCHA_YELLOW}  ⚠️ No profile selected. Aborting.${NC}"
-      set -m
-      return 1
-    fi
+    local choices=("[Create new API profile]" "[Create new SSO profile]")
+    while IFS= read -r line; do choices+=("$line"); done < <(aws configure list-profiles 2>/dev/null)
+    profile_name=$(printf '%s\n' "${choices[@]}" | _smart_picker "Select Profile: ")
   fi
 
-  if ! command -v aws &>/dev/null; then
-    printf "%b\n" "${CMOCHA_RED}  ❌ AWS CLI not found${NC}"
-    set -m
-    return 1
-  fi
+  [[ -z "$profile_name" ]] && return 1
 
-  if ! aws configure list-profiles 2>/dev/null | grep -qx "${profile_name}"; then
-    printf "%b\n" "${CMOCHA_YELLOW}  ⚠️ Profile ${CMOCHA_PURPLE}${profile_name}${CMOCHA_YELLOW} not found${NC}"
-    set -m
-    return 1
-  fi
-
-  printf "\r${CMOCHA_CYAN}  Exporting credentials for ${CMOCHA_PURPLE}${profile_name}${CMOCHA_CYAN}...${NC} "
-  spinner & spinner_pid=${!}
-
-  if _is_sso_profile "${profile_name}"; then
-    export_output="$(aws configure export-credentials --profile "${profile_name}" --format env 2>&1)"
-    export_exit_code=${?}
-    if [[ "${export_exit_code}" -eq 0 ]]; then
-      cleaned_output="$(echo "$export_output" | sed 's/ *= */=/g')"
-      eval "${cleaned_output}"
-      stop_spinner
-      printf "\r${CMOCHA_CYAN}  Exporting credentials for ${CMOCHA_PURPLE}${profile_name}${CMOCHA_CYAN}... ${CMOCHA_GREEN}✅${NC}\n"
-      AWS_REGION="$(aws configure get region --profile "${profile_name}" 2>/dev/null)"
-      if [[ -n "${AWS_REGION}" ]]; then
-        export AWS_REGION
-        export AWS_DEFAULT_REGION="${AWS_REGION}"
-      fi
-      export AWS_ACTIVE_PROFILE="${profile_name}"
-    else
-      stop_spinner
-      printf "\r${CMOCHA_CYAN}  Exporting credentials for ${CMOCHA_PURPLE}${profile_name}${CMOCHA_CYAN}... ${CMOCHA_RED}❌${NC}\n"
-      if [[ "${export_output}" == *"Token for"* ]] || [[ "${export_output}" == *"Token has expired"* ]] || [[ "${export_output}" == *"SSO Token: Token"* ]]; then
-        printf "\r${CMOCHA_CYAN}  Session expired or token missing. Renewing... ${CMOCHA_YELLOW}⚠️${NC}\n"
-        login_output="$(aws sso login --profile "${profile_name}" 2>&1)"
-        login_exit_code=${?}
-        echo "${login_output}" | while IFS= read -r line; do
-          printf "  %s\n" "${line}"
-        done
-        if [[ "${login_exit_code}" -eq 0 ]]; then
-          printf "\r${CMOCHA_CYAN}  Retrying export...${NC} "
-          spinner & spinner_pid=${!}
-          export_output="$(aws configure export-credentials --profile "${profile_name}" --format env 2>&1)"
-          if [[ "${?}" -eq 0 ]]; then
-            cleaned_output="$(echo "$export_output" | sed 's/ *= */=/g')"
-            eval "${cleaned_output}"
-            stop_spinner
-            printf "\r${CMOCHA_CYAN}  Exporting credentials for ${CMOCHA_PURPLE}${profile_name}${CMOCHA_CYAN}... ${CMOCHA_GREEN}✅${NC}\n"
-          else
-            stop_spinner
-            printf "\r${CMOCHA_CYAN}  Renewal failed... ${CMOCHA_RED}❌${NC}\n"
-            printf "  ${CMOCHA_YELLOW}%s${NC}\n" "${export_output}"
-            set -m
-            return 1
-          fi
-        else
-          printf "\r${CMOCHA_CYAN}  Auto-renew failed... ${CMOCHA_RED}❌${NC}\n"
-          set -m
-          return 1
-        fi
-      else
-        printf "  ${CMOCHA_YELLOW}⚠️ Error: %s${NC}\n" "${export_output}"
-        set -m
-        return 1
-      fi
-    fi
+  if [[ "$profile_name" == "[Create new SSO profile]" ]]; then
+    _create_sso_profile
+  elif [[ "$profile_name" == "[Create new API profile]" ]]; then
+      local new_p ak sk reg
+      _prompt_read "New profile name: " new_p ""
+      _prompt_read "Access Key: " ak ""
+      printf "Secret Key: " >&2; read -rs sk; echo "" >&2
+      _prompt_read "Default Region: " reg "us-east-1"
+      aws configure set aws_access_key_id "$ak" --profile "$new_p"
+      aws configure set aws_secret_access_key "$sk" --profile "$new_p"
+      aws configure set region "$reg" --profile "$new_p"
+      _activate_profile "$new_p"
   else
-    if _export_credentials_manual "${profile_name}"; then
-      stop_spinner
-      export AWS_ACTIVE_PROFILE="${profile_name}"
-      printf "\r${CMOCHA_CYAN}  Exporting credentials for ${CMOCHA_PURPLE}${profile_name}${CMOCHA_CYAN}... ${CMOCHA_GREEN}✅${NC}\n"
-    else
-      stop_spinner
-      printf "\r${CMOCHA_CYAN}  Exporting credentials for ${CMOCHA_PURPLE}${profile_name}${CMOCHA_CYAN}... ${CMOCHA_RED}❌${NC}\n"
-      printf "  ${CMOCHA_YELLOW}⚠️ Error: Could not retrieve credentials from profile${NC}\n"
-      set -m
-      return 1
-    fi
+      local is_silent="false"
+      [[ -n "$1" ]] && is_silent="true"
+      _activate_profile "$profile_name" "$is_silent"
   fi
-
-  printf "\r${CMOCHA_CYAN}  Validating credentials for ${CMOCHA_PURPLE}${profile_name}${CMOCHA_CYAN}...${NC} "
-  spinner & spinner_pid=${!}
-  error_output="$(aws sts get-caller-identity --query 'Account' --output text 2>&1 > /dev/null)"
-  if AWS_ACCOUNT="$(aws sts get-caller-identity --query 'Account' --output text 2>/dev/null)"; then
-    export AWS_ACCOUNT
-    if AWS_ACCOUNT_ALIAS="$(aws iam list-account-aliases --query 'AccountAliases' --output text 2>/dev/null)"; then
-      export AWS_ACCOUNT_ALIAS
-      stop_spinner
-      printf "\r${CMOCHA_CYAN}  Validating credentials for ${CMOCHA_PURPLE}${profile_name}${CMOCHA_CYAN}... ${CMOCHA_GREEN}✅${NC}\n"
-      printf "  Account ID: ${CMOCHA_CYAN}%s${NC}\n" "${AWS_ACCOUNT}"
-    else
-      stop_spinner
-      printf "\r${CMOCHA_CYAN}  Validating credentials for ${CMOCHA_PURPLE}${profile_name}${CMOCHA_CYAN}... Could not retrieve AWS account alias ${CMOCHA_YELLOW}⚠️${NC}\n"
-      export AWS_ACCOUNT_ALIAS=""
-    fi
-  else
-    stop_spinner
-    if echo "${error_output}" | grep -q -e "ExpiredToken"; then
-      printf "\r${CMOCHA_CYAN}  Validation failed... ${CMOCHA_RED}❌${NC}\n"
-      printf "  ${CMOCHA_YELLOW}⚠️ Detected late expiry. Forcing renewal...${NC}\n"
-      setaws "${profile_name}"
-    else
-      printf "\r${CMOCHA_CYAN}  Validation failed... ${CMOCHA_RED}❌${NC}\n"
-      printf "  ${CMOCHA_YELLOW}%s${NC}\n" "${error_output}"
-      set -m
-      return 1
-    fi
-  fi
-
-  set -m
-}
-
-# --- Public Function: awsconsole ---
-
-function awsconsole {
-  local profile_name="${1}"
-  local container_name="${2}"
-
-  if [[ "${profile_name}" == "-h" || "${profile_name}" == "--help" ]]; then
-    printf "Usage: awsconsole [profile-name] [container-name]\n\n"
-    printf "Open the AWS Console in a Firefox container tab.\n\n"
-    printf "Arguments:\n"
-    printf "  profile-name    AWS profile to use (optional; picker shown if omitted)\n"
-    printf "  container-name  Firefox container name (default: profile-name)\n\n"
-    printf "Profile type is detected automatically:\n"
-    printf "  SSO profiles      Open via the SSO start URL with account/role params\n"
-    printf "  API key profiles  Generate a federation token and open via signin URL\n\n"
-    printf "Container color is derived deterministically from the container name.\n"
-    printf "Requires Firefox with the Multi-Account Containers extension.\n"
-    return 0
-  fi
-
-  set +m
-
-  local container_icon="briefcase"
-
-  # Profile picker
-  if [[ -z "${profile_name}" ]]; then
-    profile_name="$(_pick_aws_profile)" || { set -m; return 1; }
-  fi
-
-  # If no container name specified, use the profile name
-  if [[ -z "${container_name}" ]]; then
-    container_name="${profile_name}"
-  fi
-
-  local container_color="$(_get_container_color "${container_name}")"
-
-  # Detect SSO profile and resolve sso-session
-  local sso_account_id sso_role_name sso_url region
-  sso_account_id="$(aws configure get sso_account_id --profile "${profile_name}" 2>/dev/null)"
-  sso_role_name="$(aws configure get sso_role_name --profile "${profile_name}" 2>/dev/null)"
-  region="$(aws configure get region --profile "${profile_name}" 2>/dev/null)"
-  sso_url="$(_get_sso_start_url "${profile_name}")"
-
-  local url
-
-  if [[ -n "${sso_url}" && -n "${sso_account_id}" && -n "${sso_role_name}" ]]; then
-    spinner & spinner_pid=$!
-    local destination="https://console.aws.amazon.com/"
-    local destination_enc
-    destination_enc=$(_urlencode "${destination}")
-    url="${sso_url}/#/console?account_id=${sso_account_id}&role_name=${sso_role_name}&destination=${destination_enc}"
-    stop_spinner
-    printf "${CMOCHA_GREEN}  Opening AWS Console for SSO profile %s in container '%s' (color: %s, icon: %s)${NC}\n" "${profile_name}" "${container_name}" "${container_color}" "${container_icon}"
-  else
-    spinner & spinner_pid=$!
-    local creds_json
-    creds_json="$(aws --profile "${profile_name}" sts get-caller-identity --output json 2>/dev/null)"
-    stop_spinner
-    if [[ -z "${creds_json}" ]]; then
-      printf "${CMOCHA_RED}  Could not retrieve credentials for profile %s${NC}\n" "${profile_name}"
-      set -m
-      return 1
-    fi
-
-    local access_key secret_key session_token
-    access_key="$(aws configure get aws_access_key_id --profile "${profile_name}")"
-    secret_key="$(aws configure get aws_secret_access_key --profile "${profile_name}")"
-    session_token="$(aws configure get aws_session_token --profile "${profile_name}")"
-
-    if [[ -z "${session_token}" ]]; then
-      spinner & spinner_pid=$!
-      local session_json
-      session_json="$(aws --profile "${profile_name}" sts get-session-token --duration-seconds 3600 --output json 2>/dev/null)"
-      stop_spinner
-      access_key="$(echo "${session_json}" | jq -r '.Credentials.AccessKeyId')"
-      secret_key="$(echo "${session_json}" | jq -r '.Credentials.SecretAccessKey')"
-      session_token="$(echo "${session_json}" | jq -r '.Credentials.SessionToken')"
-    fi
-
-    if [[ -z "${access_key}" || -z "${secret_key}" || -z "${session_token}" ]]; then
-      printf "${CMOCHA_RED}  Could not retrieve valid AWS credentials for profile %s${NC}\n" "${profile_name}"
-      set -m
-      return 1
-    fi
-
-    spinner & spinner_pid=$!
-    local session
-    session="{\"sessionId\":\"${access_key}\",\"sessionKey\":\"${secret_key}\",\"sessionToken\":\"${session_token}\"}"
-    local signin_token
-    signin_token="$(curl -s "https://signin.aws.amazon.com/federation?Action=getSigninToken&Session=$(_urlencode "${session}")" | jq -r .SigninToken)"
-    url="https://signin.aws.amazon.com/federation?Action=login&Issuer=Example.org&Destination=https%3A%2F%2Fconsole.aws.amazon.com%2F&SigninToken=${signin_token}"
-    stop_spinner
-    printf "${CMOCHA_GREEN}  Opening federated AWS Console for IAM/role profile %s in container '%s' (color: %s, icon: %s)${NC}\n" "${profile_name}" "${container_name}" "${container_color}" "${container_icon}"
-  fi
-
-  # Build the container URL for the Firefox extension
-  local container_url="ext+container:name=${container_name}&color=${container_color}&icon=${container_icon}&url=${url}"
-
-  # Open in Firefox container tab
-  case "$(uname -s)" in
-    Linux*)
-      if command -v firefox &>/dev/null; then
-        printf "${CMOCHA_CYAN}  Launching Firefox...${NC}\n"
-        nohup firefox "${container_url}" > /dev/null 2>&1
-      else
-        printf "${CMOCHA_RED}  Firefox not found. Please install Firefox to use container tabs.${NC}\n"
-        set -m
-        return 1
-      fi
-      ;;
-    Darwin*)
-      printf "${CMOCHA_CYAN}  Launching Firefox...${NC}\n"
-      open -a Firefox "${container_url}" > /dev/null 2>&1
-      ;;
-    *)
-      printf "${CMOCHA_RED}  Unsupported operating system.${NC}\n"
-      set -m
-      return 1
-      ;;
-  esac
-
-  set -m
 }
