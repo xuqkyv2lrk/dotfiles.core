@@ -1,0 +1,10 @@
+# Ignore all runtime/transient Claude data
+*
+
+# Keep managed config files
+!.gitignore
+!CLAUDE.md
+!keybindings.json
+!settings.json
+!hooks/
+!hooks/**
