@@ -106,3 +106,15 @@ tooltips:
     foreground: "p:yellow"
     background: "transparent"
     template: "{{ if .Env.AWS_ACTIVE_PROFILE }}{{ .Env.AWS_ACTIVE_PROFILE }}{{ if .Region }}@{{ .Region }}{{ end }}{{ end }}"
+
+  - type: python
+    tips:
+      - python
+      - python3
+      - pip
+      - pip3
+      - uv
+    style: plain
+    foreground: "p:blue"
+    background: transparent
+    template: "{{ if .Venv }}<p:green>{{ .Venv }}</> {{ end }}{{ .Full }}"
