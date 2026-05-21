@@ -17,7 +17,7 @@ Plug 'catppuccin/vim', { 'as': 'catppuccin' }
 Plug 'rrethy/vim-hexokinase', { 'do': 'make hexokinase' }
 
 " Other
-Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
+Plug 'fatih/vim-go', { 'do': ':GoInstallBinaries' }
 Plug 'vim-airline/vim-airline'
 Plug 'tpope/vim-fugitive'
 Plug 'preservim/nerdtree'
