@@ -16,6 +16,7 @@ export COREDOTS="${HOME}/.dotfiles.core"
 export DIDOTS="${HOME}/.dotfiles.di"
 export NOTES="${HOME}/notes"
 #export TERM="xterm-256color"
+export MISE_EXPERIMENTAL=1
 export LESS="-eirMX"
 export USER_NAME="$(whoami)"
 export PAGER="less"
