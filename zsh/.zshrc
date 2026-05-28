@@ -93,5 +93,6 @@ fi
 #**********
 eval "$(direnv hook zsh)"
 eval "$(atuin init zsh)"
+eval "$(mise activate zsh)"
 
 [[ -f "${HOME}/.local/share/../bin/env" ]] && . "${HOME}/.local/share/../bin/env"
