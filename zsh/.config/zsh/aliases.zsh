@@ -28,7 +28,7 @@ fi
 # diff
 # ****
 if command -v delta &> /dev/null; then
-  alias diff='diff -u | delta'
+  function diff() { command diff -u "$@" | delta; }
 fi
 
 # ****
