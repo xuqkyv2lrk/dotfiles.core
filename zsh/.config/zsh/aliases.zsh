@@ -25,6 +25,13 @@ if command -v bat &> /dev/null; then
 fi
 
 # ****
+# diff
+# ****
+if command -v delta &> /dev/null; then
+  alias diff='diff -u | delta'
+fi
+
+# ****
 # git
 # ****
 alias g="git"
