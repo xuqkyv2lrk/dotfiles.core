@@ -157,6 +157,68 @@ PRs SHOULD be small, focused, and pass checks before review.
 - Use snake_case for variables and functions
 - Use Black for formatting
 
+### Python Output Standards (Catppuccin Mocha)
+
+All Python scripts that produce user-facing terminal output should use the Catppuccin Mocha palette. Place helpers in a `colors.py` module and import from it.
+
+```python
+import itertools
+import sys
+import threading
+import time
+
+RED     = '\033[38;2;243;139;168m'
+GREEN   = '\033[38;2;166;227;161m'
+YELLOW  = '\033[38;2;249;226;175m'
+BLUE    = '\033[38;2;137;180;250m'
+MAUVE   = '\033[38;2;203;166;247m'
+TEAL    = '\033[38;2;148;226;213m'
+TEXT    = '\033[38;2;205;214;244m'
+SUBTEXT = '\033[38;2;166;173;200m'
+RESET   = '\033[0m'
+
+def print_info(msg: str) -> None:    print(f"{BLUE}[INFO]{RESET} {msg}")
+def print_success(msg: str) -> None: print(f"{GREEN}[OK]{RESET} {msg}")
+def print_warning(msg: str) -> None: print(f"{YELLOW}[WARN]{RESET} {msg}", file=sys.stderr)
+def print_error(msg: str) -> None:   print(f"{RED}[ERROR]{RESET} {msg}", file=sys.stderr)
+def print_step(msg: str) -> None:    print(f"{MAUVE}==>{RESET} {msg}")
+
+
+class Spinner:
+    """Context manager that shows a Catppuccin-coloured braille spinner."""
+
+    _FRAMES = ('⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏')
+
+    def __init__(self, message: str) -> None:
+        self.message = message
+        self._stop = threading.Event()
+        self._thread = threading.Thread(target=self._spin, daemon=True)
+
+    def _spin(self) -> None:
+        for frame in itertools.cycle(self._FRAMES):
+            if self._stop.is_set():
+                break
+            print(f"\r{TEAL}{frame}{RESET} {self.message}", end='', flush=True)
+            time.sleep(0.08)
+
+    def __enter__(self) -> "Spinner":
+        self._thread.start()
+        return self
+
+    def __exit__(self, *_: object) -> None:
+        self._stop.set()
+        self._thread.join()
+        print(f"\r{' ' * (len(self.message) + 4)}\r", end='', flush=True)
+```
+
+Usage guidelines mirror the bash standards:
+- `print_info` for general status messages
+- `print_success` for completed actions
+- `print_warning` for non-fatal issues (stderr)
+- `print_error` for errors (stderr)
+- `print_step` for major workflow steps
+- `Spinner` as a context manager wrapping any blocking operation
+
 ### Go Style
 - Follow gofmt formatting
 - Use short variable names in small scopes

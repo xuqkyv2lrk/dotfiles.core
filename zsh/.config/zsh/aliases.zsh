@@ -24,12 +24,6 @@ if command -v bat &> /dev/null; then
   alias catt="bat" 
 fi
 
-# ****
-# diff
-# ****
-if command -v delta &> /dev/null; then
-  function diff() { command diff -u "$@" | delta; }
-fi
 
 # ****
 # git
