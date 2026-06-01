@@ -141,6 +141,33 @@ PRs SHOULD be small, focused, and pass checks before review.
 - **Versioning**: SemVer; breaking change → MAJOR, `feat` → MINOR, everything else → PATCH
 - **Releases**: Tag as `vMAJOR.MINOR.PATCH` with annotated tag
 
+## File & Directory Naming Conventions
+
+Follow community defaults for each ecosystem. Consistency within a project matters
+more than a universal rule — match what the tooling and community already expect.
+
+| Context | Directories | Files | Examples |
+|---|---|---|---|
+| Kubernetes / Helm | `kebab-case` | `kebab-case` | `helm-releases/`, `ks-app.yaml`, `helm-release.yaml` |
+| Terraform | `kebab-case` | `snake_case` | `modules/vpc-network/`, `main.tf`, `variables.tf` |
+| Rust | `kebab-case` | `snake_case` | `crates/crypto-utils/`, `src/jwt_helper.rs` |
+| Go | `flatcase` | `snake_case` | `internal/authservice/`, `token_handler.go` |
+| Python | `snake_case` | `snake_case` | `data_pipeline/`, `data_processor.py` |
+| Bash | `kebab-case` | `snake_case` | `scripts/`, `deploy_app.sh`, `setup_cluster.sh` |
+| JavaScript / TypeScript | `kebab-case` | `kebab-case` | `auth-service.ts`, `api-client.ts` |
+| React components | `kebab-case` | `PascalCase` | `components/`, `UserCard.tsx`, `AuthForm.tsx` |
+
+### Canonical names — never rename
+
+Some files have names dictated by tools or strong ecosystem convention. Leave them as-is
+regardless of the rules above:
+
+- Toolchain roots: `Dockerfile`, `Makefile`, `Vagrantfile`, `.gitignore`, `.env`
+- Documentation: `README.md`, `CHANGELOG.md`, `LICENSE`, `CLAUDE.md`
+- Terraform fixed names: `main.tf`, `variables.tf`, `outputs.tf`, `providers.tf`
+- Go fixed names: `main.go`, `doc.go`
+- Flux-generated: `gotk-components.yaml`, `gotk-sync.yaml`
+
 ## Language-Specific Standards
 
 ### JavaScript/TypeScript Style
