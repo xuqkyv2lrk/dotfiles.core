@@ -19,7 +19,7 @@ setopt HIST_IGNORE_SPACE         # Do not record an event starting with a space.
 setopt HIST_SAVE_NO_DUPS         # Do not write a duplicate event to the history file.
 setopt SHARE_HISTORY             # Share history between all sessions.
 setopt HIST_VERIFY
-unsetopt beep correct
+unsetopt beep correct BANG_HIST
 zle_highlight=('paste:none')
 
 # ****
