@@ -51,6 +51,7 @@ plug "${HOME}/.config/zsh/*"
 plug "hlissner/zsh-autopair"
 plug "zap-zsh/exa"
 plug "zsh-users/zsh-history-substring-search"
+plug "Aloxaf/fzf-tab"
 plug "zsh-users/zsh-autosuggestions"
 plug "zsh-users/zsh-syntax-highlighting"
 
