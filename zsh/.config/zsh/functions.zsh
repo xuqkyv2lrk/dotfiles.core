@@ -12,7 +12,7 @@ fi
 # Autocomplete Red Dots
 # ****
 expand-or-complete-with-dots() {
-    printf "${CMOCHA_RED}......${NC}"
+    printf "${CMOCHA_PURPLE}......${NC}"
     zle expand-or-complete
     zle redisplay
 }
