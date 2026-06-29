@@ -39,8 +39,8 @@ zstyle ':completion:*' menu select
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 zstyle ':completion:*' group-name ''
-zstyle ':completion:*:descriptions' format '%F{blue}-- %d --%f'
-zstyle ':completion:*:warnings' format '%F{red}no matches%f'
+zstyle ':completion:*:descriptions' format $'\e[38;2;137;180;250m-- %d --\e[0m'
+zstyle ':completion:*:warnings' format $'\e[38;2;243;139;168mno matches\e[0m'
 
 # ****
 # User Defined Locals
