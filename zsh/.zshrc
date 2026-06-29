@@ -23,7 +23,7 @@ unsetopt beep correct BANG_HIST
 zle_highlight=('paste:none')
 
 # ****
-# Bash Completion
+# Completion
 # ****
 autoload -Uz compinit
 if [[ -n "${ZDOTDIR:-$HOME}/.zcompdump"(#qN.mh+24) ]]; then
@@ -32,6 +32,13 @@ else
     compinit -C
 fi
 autoload -Uz +X bashcompinit && bashcompinit
+
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+zstyle ':completion:*' group-name ''
+zstyle ':completion:*:descriptions' format '%F{blue}-- %d --%f'
+zstyle ':completion:*:warnings' format '%F{red}no matches%f'
 
 # ****
 # User Defined Locals

@@ -121,7 +121,7 @@ function opwd() { op item get "$1" --fields label=username,label=password; }
 # Save Python packages into a requirements file
 #***
 function pip-install-save {
-    pip install "$1" && pip freeze | grep "$1" >> requirements.txt
+    pip install "$1" && pip freeze | grep -i "^${1}==" >> requirements.txt
 }
 
 #***
@@ -239,8 +239,11 @@ function igpg() {
 #***
 function genuser() {
     local case_type="$1"
+    local raw
+    raw=$(openssl rand -base64 48 | tr -dc 'a-zA-Z0-9')
+    raw="${raw:0:10}"
 
-    openssl rand -base64 12 | tr -dc 'a-zA-Z0-9' | fold -w 10 | head -n 1 | awk -v case_type="$case_type" '{
+    printf '%s' "$raw" | awk -v case_type="$case_type" '{
         srand();
         for (i=1; i<=length($0); i++) {
             c = substr($0,i,1);

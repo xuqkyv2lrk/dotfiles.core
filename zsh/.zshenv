@@ -5,7 +5,7 @@
 # ****
 export COLORTERM=truecolor
 export XDG_CONFIG_HOME="${HOME}/.config"
-export XDG_CACHE="${HOME}/.cache"
+export XDG_CACHE_HOME="${HOME}/.cache"
 export XDG_DATA_HOME="${HOME}/.local/share"
 export DISTRO=$(. /etc/os-release && echo ${ID})
 export SHELL="$(which zsh)"
@@ -18,14 +18,12 @@ export NOTES="${HOME}/notes"
 #export TERM="xterm-256color"
 export MISE_EXPERIMENTAL=1
 export LESS="-eirMX"
-export USER_NAME="$(whoami)"
 export PAGER="less"
 export EDITOR="vim"
 export BROWSER="firefox"
 export FMANAGER="yazi"
 export READER="zathura"
 export TERMINAL="foot"
-export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
 export GOPATH="${HOME}/go"
 export HISTFILE="${HOME}/.zsh_history"
 export HISTSIZE=1000000

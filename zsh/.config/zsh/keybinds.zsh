@@ -1,3 +1,4 @@
+bindkey -v
 bindkey '^ ' autosuggest-accept
 bindkey "^I"    expand-or-complete-with-dots
 bindkey "${terminfo[kcbt]:-^[[Z}" reverse-menu-complete

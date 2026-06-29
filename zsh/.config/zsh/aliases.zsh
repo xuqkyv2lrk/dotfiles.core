@@ -50,7 +50,7 @@ compdef __start_kubectl k
 # dotfiles git command
 # ****
 alias gdots="g --git-dir=${COREDOTS}/.git --work-tree=${COREDOTS}"
-alias gconfig="g --git-dir=${DOTFILES}/.git --work-tree=${DOTFILES}"
+alias gconfig="g --git-dir=${DIDOTS}/.git --work-tree=${DIDOTS}"
 
 # ****
 # nixos
