@@ -25,6 +25,8 @@ zle_highlight=('paste:none')
 # ****
 # Completion
 # ****
+plug "zsh-users/zsh-completions"
+fpath=("${HOME}/.local/share/zap/plugins/zsh-completions/src" $fpath)
 autoload -Uz compinit
 if [[ -n "${ZDOTDIR:-$HOME}/.zcompdump"(#qN.mh+24) ]]; then
     compinit
