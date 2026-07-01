@@ -45,8 +45,10 @@ function stop_spinner() {
 
 function _smart_picker() {
   local prompt="$1"
-  if command -v fuzzel &>/dev/null; then
-    fuzzel -d --prompt="$prompt" 2>/dev/null || fzf --prompt="$prompt"
+  if [[ -t 2 ]]; then
+    fzf --prompt="$prompt"
+  elif command -v fuzzel &>/dev/null; then
+    fuzzel -d --prompt="$prompt" 2>/dev/null
   else
     fzf --prompt="$prompt"
   fi
