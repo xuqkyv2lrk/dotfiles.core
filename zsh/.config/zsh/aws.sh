@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 
 # Catppuccin Mocha palette
-readonly RED='\033[38;2;243;139;168m'
-readonly GREEN='\033[38;2;166;227;161m'
-readonly YELLOW='\033[38;2;249;226;175m'
-readonly BLUE='\033[38;2;137;180;250m'
-readonly MAUVE='\033[38;2;203;166;247m'
-readonly TEAL='\033[38;2;148;226;213m'
-readonly TEXT='\033[38;2;205;214;244m'
-readonly SUBTEXT='\033[38;2;166;173;200m'
-readonly RESET='\033[0m'
+RED='\033[38;2;243;139;168m'
+GREEN='\033[38;2;166;227;161m'
+YELLOW='\033[38;2;249;226;175m'
+BLUE='\033[38;2;137;180;250m'
+MAUVE='\033[38;2;203;166;247m'
+TEAL='\033[38;2;148;226;213m'
+TEXT='\033[38;2;205;214;244m'
+SUBTEXT='\033[38;2;166;173;200m'
+RESET='\033[0m'
 
 function print_info()    { printf "${BLUE}[INFO]${RESET} %s\n" "$*"; }
 function print_success() { printf "${GREEN}[OK]${RESET} %s\n" "$*"; }
@@ -109,11 +109,26 @@ function _activate_profile() {
       export AWS_DEFAULT_REGION="${target_region:-us-east-1}"
       export AWS_PROFILE="$profile"
     else
-      if [[ "$silent" != "true" ]]; then
-        stop_spinner
-        print_error "SSO session expired. Run: aws sso login --profile ${profile}"
+      stop_spinner
+      print_warning "SSO session expired, re-authenticating..."
+      local sso_session
+      sso_session=$(aws configure get sso_session --profile "$profile" 2>/dev/null)
+      if [[ -n "$sso_session" ]]; then
+        aws sso login --sso-session "$sso_session" >&2 || return 1
+      else
+        aws sso login --profile "$profile" >&2 || return 1
       fi
-      return 1
+      export_cmd=$(aws configure export-credentials --profile "$profile" --format env 2>/dev/null)
+      if [[ -n "$export_cmd" ]]; then
+        eval "${export_cmd// *= /=}"
+        export AWS_REGION="${target_region:-us-east-1}"
+        export AWS_DEFAULT_REGION="${target_region:-us-east-1}"
+        export AWS_PROFILE="$profile"
+        printf "%b[done]%b\n" "${GREEN}" "${RESET}" >&2
+      else
+        print_error "Failed to export credentials after SSO login."
+        return 1
+      fi
     fi
   else
     local val_id val_key
@@ -241,6 +256,17 @@ function setaws() {
 
   [[ -z "$profile_name" ]] && return 1
 
+  if [[ "$profile_name" != "[Create new SSO profile]" && "$profile_name" != "[Create new API profile]" ]]; then
+    if ! aws configure list-profiles 2>/dev/null | grep -qx "$profile_name"; then
+      print_warning "Profile '${profile_name}' not found. Available profiles:"
+      aws configure list-profiles 2>/dev/null | while IFS= read -r p; do
+        printf "  %b%s%b\n" "${MAUVE}" "$p" "${RESET}" >&2
+      done
+      printf "\n%bTo create a new profile run: %bsetaws%b\n" "${YELLOW}" "${GREEN}" "${RESET}" >&2
+      return 1
+    fi
+  fi
+
   if [[ "$profile_name" == "[Create new SSO profile]" ]]; then
     _create_sso_profile
   elif [[ "$profile_name" == "[Create new API profile]" ]]; then
@@ -254,8 +280,6 @@ function setaws() {
     aws configure set region "$reg" --profile "$new_p"
     _activate_profile "$new_p"
   else
-    local is_silent="false"
-    [[ -n "$1" ]] && is_silent="true"
-    _activate_profile "$profile_name" "$is_silent"
+    _activate_profile "$profile_name"
   fi
 }
