@@ -22,5 +22,6 @@
         ]
       }
     ]
-  }
+  },
+  "awsAuthRefresh": "aws sts get-caller-identity --profile aws-bedrock 2>/dev/null || aws sso login --profile aws-bedrock"
 }
