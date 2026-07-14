@@ -15,7 +15,7 @@ image_quality = 80
 
 [plugin]
 prepend_previewers = [
-    { mime = "text/markdown", run = "glow" },
+    { url = "*.md", run = "glow" },
 ]
 
 [opener]

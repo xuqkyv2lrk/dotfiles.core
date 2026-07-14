@@ -28,7 +28,7 @@ fi
 # glow
 # ****
 if command -v glow &> /dev/null; then
-  alias glow="glow -p"
+  alias glow="glow -p -w 0"
 fi
 
 
