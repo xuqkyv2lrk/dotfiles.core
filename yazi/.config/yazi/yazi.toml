@@ -13,6 +13,11 @@ max_height    = 900
 image_filter  = "lanczos3"
 image_quality = 80
 
+[plugin]
+prepend_previewers = [
+    { name = "*.md", run = "glow" },
+]
+
 [opener]
 edit = [
     { run = '$EDITOR "$@"', block = true },
