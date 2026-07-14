@@ -86,13 +86,6 @@ function fes() {
 }
 
 #***
-# glow — paged, full terminal width
-#***
-if command -v glow &> /dev/null; then
-    function glow() { command glow -p -w 120 "$@"; }
-fi
-
-#***
 # yazi
 #***
 function y() {
