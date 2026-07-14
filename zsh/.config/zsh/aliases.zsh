@@ -20,8 +20,15 @@ alias tmain="~/.tmux/tmux-bootstrap.sh ethicz"
 # bat
 # ****
 if command -v bat &> /dev/null; then
-  alias cat="bat -pp" 
-  alias catt="bat" 
+  alias cat="bat -pp"
+  alias catt="bat"
+fi
+
+# ****
+# glow
+# ****
+if command -v glow &> /dev/null; then
+  alias glow="glow -p"
 fi
 
 
