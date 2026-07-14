@@ -1,6 +1,3 @@
-[plugin]
-deps = []
-
 [[plugin.deps]]
 use = "yazi-rs/plugins:glow"
 
