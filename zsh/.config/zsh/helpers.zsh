@@ -90,9 +90,11 @@ function fes() {
 #***
 function y() {
 	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")"
-	yazi "$@" --cwd-file="$tmp"
+	local target="${1:-.}"
+	[[ -f "$target" ]] && target="$(dirname "$target")"
+	yazi "$target" "${@:2}" --cwd-file="$tmp"
 	if cwd="$(cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
-		cd -- "$cwd"
+		builtin cd -- "$cwd"
 	fi
 	rm -f -- "$tmp"
 }
