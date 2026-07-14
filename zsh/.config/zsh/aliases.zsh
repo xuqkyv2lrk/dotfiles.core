@@ -24,12 +24,6 @@ if command -v bat &> /dev/null; then
   alias catt="bat"
 fi
 
-# ****
-# glow
-# ****
-if command -v glow &> /dev/null; then
-  alias glow="glow -p -w 0"
-fi
 
 
 # ****

@@ -1,6 +1,3 @@
-[[plugin.deps]]
-use = "yazi-rs/plugins:glow"
-
 [[flavor.deps]]
 use = "yazi-rs/flavors:catppuccin-mocha"
 rev = "0f9204b"
