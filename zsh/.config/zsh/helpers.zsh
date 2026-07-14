@@ -86,6 +86,13 @@ function fes() {
 }
 
 #***
+# glow — paged, dynamic terminal width
+#***
+if command -v glow &> /dev/null; then
+    function glow() { command glow -p -w "$(tput cols)" "$@"; }
+fi
+
+#***
 # yazi
 #***
 function y() {
