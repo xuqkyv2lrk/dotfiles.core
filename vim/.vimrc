@@ -31,12 +31,15 @@ Plug 'sheerun/vim-polyglot'
 " LSP / completion
 Plug 'neoclide/coc.nvim', { 'branch': 'release' }
 
-" UI
-Plug 'vim-airline/vim-airline'
-Plug 'tpope/vim-vinegar'
-Plug 'mhinz/vim-signify'
-Plug 'rhysd/git-messenger.vim'
-Plug 'ctrlpvim/ctrlp.vim'
+" UI & Navigation
+Plug 'itchyny/lightline.vim'       " Lighter statusline than airline
+Plug 'justinmk/vim-dirvish'       " Clean netrw/vinegar replacement
+Plug 'airblade/vim-gitgutter'     " Modern, fast async git signs
+Plug 'rhysd/git-messenger.vim'    " Git commit popup inspector
+
+" Fuzzy Finder
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'junegunn/fzf.vim'
 
 " Git
 Plug 'tpope/vim-fugitive'
@@ -65,13 +68,14 @@ set t_vb=
 set backspace=indent,eol,start
 set updatetime=300
 set signcolumn=yes
-set autowrite
 set undofile
 set undodir=~/.vim/undodir
 set foldlevelstart=20
 set hlsearch
 
 let mapleader = ","
+
+let $NVIM_COC_LOG_LEVEL = 'trace'
 
 nnoremap <silent> <CR>  :nohlsearch<CR>
 nnoremap <silent> <C-l> :nohlsearch<CR><C-l>
@@ -87,7 +91,7 @@ endif
 
 silent! colorscheme catppuccin_mocha
 
-hi Normal     guibg=NONE ctermbg=NONE
+hi Normal      guibg=NONE ctermbg=NONE
 hi SignColumn guifg=NONE guibg=NONE ctermbg=NONE
 
 highlight Search    guibg=#f9e2af guifg=#1e1e2e gui=bold
@@ -122,36 +126,41 @@ let g:Hexokinase_highlighters  = ['background']
 let g:Hexokinase_optInPatterns = 'full_hex,rgb,rgba,hsl,hsla'
 
 " #############
-" CtrlP
+" FZF
 " #############
-let g:ctrlp_map               = '<c-p>'
-let g:ctrlp_cmd               = 'CtrlP'
-let g:ctrlp_working_path_mode = ''
-let g:ctrlp_max_files         = 20000
-let g:ctrlp_max_depth         = 40
+nnoremap <C-p> :Files<CR>
+nnoremap <leader>fg :Rg<CR>
+nnoremap <leader>fb :Buffers<CR>
 
 " #############
-" Signify
+" Dirvish
 " #############
-" Lower priority so CoC diagnostic signs take precedence on the same line
-let g:signify_priority = 5
+" Press 'gq' to instantly close the Dirvish buffer and return to your file
+autocmd FileType dirvish nnoremap <buffer> gq :bd<CR>
 
 " #############
-" Airline
+" Lightline
 " #############
-let g:airline_powerline_fonts = 1
+set laststatus=2
+set noshowmode
 
-if !exists('g:airline_symbols')
-  let g:airline_symbols = {}
-endif
+let g:lightline = {
+      \ 'colorscheme': 'catppuccin_mocha',
+      \ 'active': {
+      \   'left': [ [ 'mode', 'paste' ],
+      \             [ 'cocstatus', 'readonly', 'filename', 'modified' ] ]
+      \ },
+      \ 'component_function': {
+      \   'cocstatus': 'coc#status'
+      \ },
+      \ }
 
-let g:airline_left_sep         = ''
-let g:airline_left_alt_sep     = ''
-let g:airline_right_sep        = ''
-let g:airline_right_alt_sep    = ''
-let g:airline_symbols.branch   = ''
-let g:airline_symbols.readonly = ''
-let g:airline_symbols.linenr   = ''
+autocmd User CocStatusChange,CocDiagnosticChange call lightline#update()
+
+" #############
+" GitGutter
+" #############
+let g:gitgutter_sign_priority = 5
 
 " #############
 " CoC
@@ -220,14 +229,14 @@ endfunction
 " #############
 " Go
 " #############
-let g:go_highlight_types             = 1
-let g:go_highlight_fields            = 1
-let g:go_highlight_functions         = 1
-let g:go_highlight_function_calls    = 1
-let g:go_highlight_operators         = 1
-let g:go_highlight_extra_types       = 1
+let g:go_highlight_types            = 1
+let g:go_highlight_fields           = 1
+let g:go_highlight_functions        = 1
+let g:go_highlight_function_calls   = 1
+let g:go_highlight_operators        = 1
+let g:go_highlight_extra_types      = 1
 let g:go_highlight_build_constraints = 1
-let g:go_highlight_generate_tags     = 1
+let g:go_highlight_generate_tags    = 1
 
 let g:go_fmt_autosave            = 1
 let g:go_fmt_command             = "goimports"
