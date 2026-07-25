@@ -109,7 +109,6 @@ highlight Identifier ctermfg=150
 set ts=4 sw=4 sts=4 expandtab
 
 autocmd FileType yaml setlocal ts=2 sts=2 sw=2 expandtab
-autocmd FileType rust setlocal ts=4 sts=4 sw=4 expandtab
 
 " #############
 " JSON / Markdown
@@ -255,7 +254,6 @@ augroup END
 " #############
 let g:rustfmt_autosave = 0
 let g:rust_recommended_style = 0
-let g:rust_clip_command = ''
 let g:rust_fold = 0
 
 augroup rust_commands
