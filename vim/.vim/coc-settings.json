@@ -47,12 +47,9 @@
     }
   },
   "rust-analyzer.check.command": "clippy",
-  "rust-analyzer.diagnostics.enable": true,
-  "rust-analyzer.procMacro.enable": true,
-  "rust-analyzer.inlayHints.typeHints.enable": false,
-  "rust-analyzer.inlayHints.parameterHints.enable": false,
-  "rust-analyzer.inlayHints.chainingHints.enable": false,
-  "rust-analyzer.trace.server": "off",
+  "rust-analyzer.inlayHints.typeHints.enable": true,
+  "rust-analyzer.inlayHints.parameterHints.enable": true,
+  "rust-analyzer.inlayHints.chainingHints.enable": true,
   "pullDiagnostic.ignored": ["**/*.rs"],
   "git.signPriority": 1,
   "yaml.schemas": {

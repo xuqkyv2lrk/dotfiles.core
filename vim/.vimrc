@@ -77,8 +77,6 @@ set hlsearch
 
 let mapleader = ","
 
-let $NVIM_COC_LOG_LEVEL = 'trace'
-
 nnoremap <silent> <CR>  :nohlsearch<CR>
 nnoremap <silent> <C-l> :nohlsearch<CR><C-l>
 
