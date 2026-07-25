@@ -33,7 +33,7 @@ Plug 'neoclide/coc.nvim', { 'branch': 'release' }
 
 " UI
 Plug 'vim-airline/vim-airline'
-Plug 'preservim/nerdtree'
+Plug 'tpope/vim-vinegar'
 Plug 'mhinz/vim-signify'
 Plug 'rhysd/git-messenger.vim'
 Plug 'ctrlpvim/ctrlp.vim'
@@ -120,15 +120,6 @@ let g:ctrlp_cmd               = 'CtrlP'
 let g:ctrlp_working_path_mode = ''
 let g:ctrlp_max_files         = 20000
 let g:ctrlp_max_depth         = 40
-
-" #############
-" NERDTree
-" #############
-nnoremap <C-g> :NERDTreeToggle<CR>
-
-let g:NERDTreeDirArrowExpandable  = '▸'
-let g:NERDTreeDirArrowCollapsible = '▾'
-let NERDTreeShowHidden            = 1
 
 " #############
 " Signify
