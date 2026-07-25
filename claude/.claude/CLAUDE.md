@@ -14,6 +14,7 @@
 - Keep explanations concise but complete
 - Use collaborative tone: write "we" instead of "you" to create a partnership feel (for example, "we could reduce" not "you could reduce")
 - Use relative paths for file references instead of absolute paths to maintain portability across different documentation systems
+- Never include directory structure trees (e.g. output of `tree`) in documentation or READMEs
 
 ## Conventional Commits & Git Workflow (Global)
 - Use Conventional Commits for all commit messages following the official 1.0.0 specification
