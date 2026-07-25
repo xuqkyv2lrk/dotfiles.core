@@ -1,5 +1,8 @@
 set nocompatible
 
+" MUST BE BEFORE plug#begin() - Disable polyglot rust to prevent sign collision
+let g:polyglot_disabled = ['rust']
+
 if empty(glob('~/.vim/autoload/plug.vim'))
   silent !curl -fLo ~/.vim/autoload/plug.vim --create-dirs
       \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
@@ -32,10 +35,9 @@ Plug 'sheerun/vim-polyglot'
 Plug 'neoclide/coc.nvim', { 'branch': 'release' }
 
 " UI & Navigation
-Plug 'itchyny/lightline.vim'       " Lighter statusline than airline
-Plug 'justinmk/vim-dirvish'       " Clean netrw/vinegar replacement
-Plug 'airblade/vim-gitgutter'     " Modern, fast async git signs
-Plug 'rhysd/git-messenger.vim'    " Git commit popup inspector
+Plug 'itchyny/lightline.vim'
+Plug 'justinmk/vim-dirvish'
+Plug 'rhysd/git-messenger.vim'
 
 " Fuzzy Finder
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
@@ -79,8 +81,6 @@ let $NVIM_COC_LOG_LEVEL = 'trace'
 
 nnoremap <silent> <CR>  :nohlsearch<CR>
 nnoremap <silent> <C-l> :nohlsearch<CR><C-l>
-
-autocmd InsertEnter,InsertLeave * set cul!
 
 " #############
 " Color Scheme
@@ -135,7 +135,6 @@ nnoremap <leader>fb :Buffers<CR>
 " #############
 " Dirvish
 " #############
-" Press 'gq' to instantly close the Dirvish buffer and return to your file
 autocmd FileType dirvish nnoremap <buffer> gq :bd<CR>
 
 " #############
@@ -155,17 +154,12 @@ let g:lightline = {
       \ },
       \ }
 
-autocmd User CocStatusChange,CocDiagnosticChange call lightline#update()
-
-" #############
-" GitGutter
-" #############
-let g:gitgutter_sign_priority = 5
+autocmd User CocStatusChange call lightline#update()
 
 " #############
 " CoC
 " #############
-let g:coc_global_extensions = ['coc-tsserver', 'coc-yaml', 'coc-rust-analyzer', 'coc-sh']
+let g:coc_global_extensions = ['coc-tsserver', 'coc-yaml', 'coc-rust-analyzer', 'coc-sh', 'coc-git']
 
 " Diagnostics navigation
 nmap <silent> [g <Plug>(coc-diagnostic-prev)
@@ -209,9 +203,6 @@ if has('nvim')
 else
   inoremap <silent><expr> <c-@> coc#refresh()
 endif
-
-" Highlight symbol and references on cursor hold
-autocmd CursorHold * silent call CocActionAsync('highlight')
 
 function! CheckBackspace() abort
   let col = col('.') - 1
@@ -265,6 +256,9 @@ augroup END
 " Rust
 " #############
 let g:rustfmt_autosave = 0
+let g:rust_recommended_style = 0
+let g:rust_clip_command = ''
+let g:rust_fold = 0
 
 augroup rust_commands
   autocmd!
@@ -278,5 +272,4 @@ augroup END
 " #############
 " Terminal
 " #############
-" Prevent terminal emulators from erasing background with background color
 let &t_ut=''

@@ -1,54 +1,60 @@
 {
-    "diagnostic.errorSign": "✘",
-    "diagnostic.warningSign": "⚠",
-    "diagnostic.infoSign": "ℹ",
-    "diagnostic.hintSign": "›",
-    "diagnostic.checkCurrentLine": true,
-    "codeLens.enable": true,
-    "suggest.noselect": true,
-    "coc.preferences.formatOnSaveFiletypes": [
-        "css",
-        "markdown",
-        "typescript",
-        "javascript",
-        "json"
-    ],
-    "coc.preferences.hoverTarget": "float",
-    "workspace.ignoredFolders": [
-        "$HOME/.cargo/**",
-        "$HOME/.rustup/**"
-    ],
-    "languageserver": {
-        "terraform": {
-            "command": "terraform-ls",
-            "args": ["serve"],
-            "filetypes": [
-                "terraform",
-                "tf"
-            ],
-            "initializationOptions": {},
-            "settings": {}
-        },
-        "dockerfile": {
-            "command": "docker-langserver",
-            "filetypes": ["dockerfile"],
-            "args": ["--stdio"]
-        },
-        "golang": {
-            "command": "gopls",
-            "rootPatterns": ["go.mod", ".vim/", ".git/", ".hg/"],
-            "filetypes": ["go"],
-            "initializationOptions": {
-                "usePlaceholders": true,
-                "completeUnimported": true
-            }
-        }
+  "diagnostic.refreshOnInsertMode": false,
+  "diagnostic.virtualText": false,
+  "diagnostic.errorSign": "✘",
+  "diagnostic.warningSign": "⚠",
+  "diagnostic.infoSign": "ℹ",
+  "diagnostic.hintSign": "›",
+  "diagnostic.checkCurrentLine": false,
+  "codeLens.enable": false,
+  "suggest.noselect": true,
+  "coc.preferences.formatOnSaveFiletypes": [
+    "css",
+    "markdown",
+    "typescript",
+    "javascript",
+    "json"
+  ],
+  "coc.preferences.hoverTarget": "float",
+  "workspace.ignoredFolders": [
+    "$HOME/.cargo/**",
+    "$HOME/.rustup/**"
+  ],
+  "languageserver": {
+    "terraform": {
+      "command": "terraform-ls",
+      "args": ["serve"],
+      "filetypes": [
+        "terraform",
+        "tf"
+      ],
+      "initializationOptions": {},
+      "settings": {}
     },
-    "rust-analyzer.check.command": "clippy",
-    "rust-analyzer.inlayHints.typeHints.enable": true,
-    "rust-analyzer.inlayHints.parameterHints.enable": true,
-    "rust-analyzer.inlayHints.chainingHints.enable": true,
-    "yaml.schemas": {
-        "kubernetes": "/*.yaml"
+    "dockerfile": {
+      "command": "docker-langserver",
+      "filetypes": ["dockerfile"],
+      "args": ["--stdio"]
+    },
+    "golang": {
+      "command": "gopls",
+      "rootPatterns": ["go.mod", ".vim/", ".git/", ".hg/"],
+      "filetypes": ["go"],
+      "initializationOptions": {
+        "usePlaceholders": true,
+        "completeUnimported": true
+      }
     }
+  },
+  "rust-analyzer.check.command": "clippy",
+  "rust-analyzer.diagnostics.enable": true,
+  "rust-analyzer.procMacro.enable": true,
+  "rust-analyzer.inlayHints.typeHints.enable": false,
+  "rust-analyzer.inlayHints.parameterHints.enable": false,
+  "rust-analyzer.inlayHints.chainingHints.enable": false,
+  "rust-analyzer.trace.server": "messages",
+  "git.signPriority": 1,
+  "yaml.schemas": {
+    "kubernetes": "/*.yaml"
+  }
 }
