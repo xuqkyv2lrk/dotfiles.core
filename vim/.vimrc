@@ -73,7 +73,8 @@ set hlsearch
 
 let mapleader = ","
 
-nnoremap <silent> <CR> :nohlsearch<CR><CR>
+nnoremap <silent> <CR>  :nohlsearch<CR>
+nnoremap <silent> <C-l> :nohlsearch<CR><C-l>
 
 autocmd InsertEnter,InsertLeave * set cul!
 
@@ -88,6 +89,14 @@ silent! colorscheme catppuccin_mocha
 
 hi Normal     guibg=NONE ctermbg=NONE
 hi SignColumn guifg=NONE guibg=NONE ctermbg=NONE
+
+highlight Search    guibg=#f9e2af guifg=#1e1e2e gui=bold
+highlight IncSearch guibg=#fab387 guifg=#1e1e2e gui=bold
+highlight CurSearch guibg=#f38ba8 guifg=#1e1e2e gui=bold
+
+highlight CocHighlightText  guibg=#45475a gui=NONE
+highlight CocHighlightRead  guibg=#45475a gui=NONE
+highlight CocHighlightWrite guibg=#45475a gui=bold
 
 highlight Comment    ctermfg=245
 highlight Identifier ctermfg=150
@@ -109,7 +118,7 @@ let g:markdown_syntax_conceal = 1
 " #############
 " Hexokinase
 " #############
-let g:Hexokinase_highlighters  = ['sign_column']
+let g:Hexokinase_highlighters  = ['background']
 let g:Hexokinase_optInPatterns = 'full_hex,rgb,rgba,hsl,hsla'
 
 " #############
@@ -254,6 +263,7 @@ augroup rust_commands
   autocmd FileType rust nmap <buffer> <leader>rt :CargoTest<CR>
   autocmd FileType rust nmap <buffer> <leader>rr :CargoRun<CR>
   autocmd FileType rust nmap <buffer> <leader>rc :CargoCheck<CR>
+  autocmd FileType rust nmap <buffer> <leader>rf :call CocAction('format')<CR>
 augroup END
 
 " #############

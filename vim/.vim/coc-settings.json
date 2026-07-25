@@ -11,12 +11,10 @@
         "markdown",
         "typescript",
         "javascript",
-        "json",
-        "rust"
+        "json"
     ],
     "coc.preferences.hoverTarget": "float",
     "workspace.ignoredFolders": [
-        "$HOME",
         "$HOME/.cargo/**",
         "$HOME/.rustup/**"
     ],
