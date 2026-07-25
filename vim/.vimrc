@@ -64,7 +64,7 @@ set visualbell
 set t_vb=
 set backspace=indent,eol,start
 set updatetime=300
-set signcolumn=auto:2
+set signcolumn=yes
 set autowrite
 set undofile
 set undodir=~/.vim/undodir
@@ -129,6 +129,12 @@ nnoremap <C-g> :NERDTreeToggle<CR>
 let g:NERDTreeDirArrowExpandable  = '▸'
 let g:NERDTreeDirArrowCollapsible = '▾'
 let NERDTreeShowHidden            = 1
+
+" #############
+" Signify
+" #############
+" Lower priority so CoC diagnostic signs take precedence on the same line
+let g:signify_priority = 5
 
 " #############
 " Airline
