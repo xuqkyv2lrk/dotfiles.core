@@ -64,7 +64,7 @@ set visualbell
 set t_vb=
 set backspace=indent,eol,start
 set updatetime=300
-set signcolumn=yes:2
+set signcolumn=auto:2
 set autowrite
 set undofile
 set undodir=~/.vim/undodir
