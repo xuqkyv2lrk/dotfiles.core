@@ -10,141 +10,193 @@ if empty(glob('~/.vim/plugged'))
 endif
 
 call plug#begin(expand('~/.vim/plugged'))
-" Color Schemes
+
+" Color scheme
 Plug 'catppuccin/vim', { 'as': 'catppuccin' }
 
-" Color Preview
+" Color preview
 Plug 'rrethy/vim-hexokinase', { 'do': 'make hexokinase' }
 
-" Other
+" Language support
 Plug 'fatih/vim-go', { 'do': ':GoInstallBinaries' }
-Plug 'vim-airline/vim-airline'
-Plug 'tpope/vim-fugitive'
-Plug 'preservim/nerdtree'
-Plug 'neoclide/coc.nvim', { 'branch': 'release' }
-Plug 'chase/vim-ansible-yaml'
-Plug 'godlygeek/tabular'
-Plug 'mhinz/vim-signify'
-Plug 'rhysd/git-messenger.vim'
-Plug 'ctrlpvim/ctrlp.vim'
+Plug 'rust-lang/rust.vim'
+Plug 'timonv/vim-cargo'
 Plug 'pangloss/vim-javascript'
 Plug 'leafgarland/typescript-vim'
 Plug 'maxmellon/vim-jsx-pretty'
-Plug 'vimwiki/vimwiki'
-Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': ['markdown', 'vim-plug']}
+Plug 'chase/vim-ansible-yaml'
 Plug 'pedrohdz/vim-yaml-folds'
 Plug 'sheerun/vim-polyglot'
+
+" LSP / completion
+Plug 'neoclide/coc.nvim', { 'branch': 'release' }
+
+" UI
+Plug 'vim-airline/vim-airline'
+Plug 'preservim/nerdtree'
+Plug 'mhinz/vim-signify'
+Plug 'rhysd/git-messenger.vim'
+Plug 'ctrlpvim/ctrlp.vim'
+
+" Git
+Plug 'tpope/vim-fugitive'
+
+" Editing
+Plug 'godlygeek/tabular'
+
+" Notes / Markdown
+Plug 'vimwiki/vimwiki'
+Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': ['markdown', 'vim-plug']}
+
 call plug#end()
 
+filetype plugin indent on
+syntax on
+
+" #############
+" General
+" #############
 set showcmd
+set number
+set encoding=utf-8
+set fileencoding=utf-8
+set visualbell
+set t_vb=
+set backspace=indent,eol,start
+set updatetime=300
+set signcolumn=yes
+set autowrite
+set undofile
+set undodir=~/.vim/undodir
+set foldlevelstart=20
+set hlsearch
+
 let mapleader = ","
 
-syntax on
+nnoremap <silent> <CR> :nohlsearch<CR><CR>
+
+autocmd InsertEnter,InsertLeave * set cul!
 
 " #############
 " Color Scheme
 " #############
-silent! colorscheme catppuccin_mocha
-" OVERRIDE: Make the background trasparent
-hi Normal guibg=NONE ctermbg=NONE
-hi SignColumn guifg=NONE guibg=NONE ctermbg=NONE
-
-if (has("termguicolors"))
+if has("termguicolors")
   set termguicolors
 endif
 
-:autocmd InsertEnter,InsertLeave * set cul!
+silent! colorscheme catppuccin_mocha
 
-let g:lightline = { 'colorscheme': 'catppuccin_mocha' }
+hi Normal     guibg=NONE ctermbg=NONE
+hi SignColumn guifg=NONE guibg=NONE ctermbg=NONE
 
-let g:palenight_terminal_italics=1
-let g:embark_terminal_italics = 1
+highlight Comment    ctermfg=245
+highlight Identifier ctermfg=150
 
-" Enable search highlight
-set hlsearch
-nnoremap <silent> <CR> :nohlsearch<CR><CR>
+" #############
+" Indentation
+" #############
+set ts=4 sw=4 sts=4 expandtab
 
-" Change comment color
-highlight Comment ctermfg=245
-highlight Identifir ctermfg=150
+autocmd FileType yaml setlocal ts=2 sts=2 sw=2 expandtab
+autocmd FileType rust setlocal ts=4 sts=4 sw=4 expandtab
+
+" #############
+" JSON / Markdown
+" #############
+let g:vim_json_conceal        = 1
+let g:markdown_syntax_conceal = 1
 
 " #############
 " Hexokinase
 " #############
-let g:Hexokinase_highlighters = ['sign_column']
+let g:Hexokinase_highlighters  = ['sign_column']
 let g:Hexokinase_optInPatterns = 'full_hex,rgb,rgba,hsl,hsla'
 
 " #############
 " CtrlP
 " #############
-let g:ctrlp_map = '<c-p>'
-let g:ctrlp_cmd = 'CtrlP'
+let g:ctrlp_map               = '<c-p>'
+let g:ctrlp_cmd               = 'CtrlP'
 let g:ctrlp_working_path_mode = ''
-let g:ctrlp_max_files=20000
-let g:ctrlp_max_depth=40
+let g:ctrlp_max_files         = 20000
+let g:ctrlp_max_depth         = 40
 
 " #############
-" Indentline Settings
+" NERDTree
 " #############
-let g:vim_json_conceal=1
-let g:markdown_syntax_conceal=1
+nnoremap <C-g> :NERDTreeToggle<CR>
+
+let g:NERDTreeDirArrowExpandable  = '▸'
+let g:NERDTreeDirArrowCollapsible = '▾'
+let NERDTreeShowHidden            = 1
+
+" #############
+" Airline
+" #############
+let g:airline_powerline_fonts = 1
+
+if !exists('g:airline_symbols')
+  let g:airline_symbols = {}
+endif
+
+let g:airline_left_sep         = ''
+let g:airline_left_alt_sep     = ''
+let g:airline_right_sep        = ''
+let g:airline_right_alt_sep    = ''
+let g:airline_symbols.branch   = ''
+let g:airline_symbols.readonly = ''
+let g:airline_symbols.linenr   = ''
 
 " #############
 " CoC
 " #############
-set updatetime=300
-set signcolumn=yes
-
 let g:coc_global_extensions = ['coc-tsserver', 'coc-yaml', 'coc-rust-analyzer', 'coc-sh']
 
-" Remap keys for applying codeAction to the current line.
-nmap <leader>ac  <Plug>(coc-codeaction)
-
-" Apply AutoFix to problem on the current line.
-nmap <leader>qf  <Plug>(coc-fix-current)
-
-" Use `[g` and `]g` to navigate diagnostics
-" Use `:CocDiagnostics` to get all diagnostics of current buffer in location list.
+" Diagnostics navigation
 nmap <silent> [g <Plug>(coc-diagnostic-prev)
 nmap <silent> ]g <Plug>(coc-diagnostic-next)
 
-" GoTo code navigation.
+" Diagnostics float window
+nmap <silent> <leader>ce :call CocActionAsync('diagnosticInfo')<CR>
+
+" Code navigation
 nmap <silent> gd <Plug>(coc-definition)
 nmap <silent> gy <Plug>(coc-type-definition)
 nmap <silent> gi <Plug>(coc-implementation)
 nmap <silent> gr <Plug>(coc-references)
 
-" use <tab> for trigger completion and navigate to the next complete item
+" Code actions
+nmap <leader>ac <Plug>(coc-codeaction)
+nmap <leader>qf <Plug>(coc-fix-current)
+nmap <leader>n  <Plug>(coc-rename)
+nmap <leader>cl <Plug>(coc-codelens-action)
+
+" Organize imports
+nmap <silent> <leader>oi :call CocActionAsync('runCommand', 'editor.action.organizeImport')<CR>
+
+" Hover documentation
+nnoremap <silent> K :call ShowDocumentation()<CR>
+
+" Tab: navigate completion or insert literal tab
 inoremap <silent><expr> <Tab>
       \ coc#pum#visible() ? coc#pum#next(1) :
       \ CheckBackspace() ? "\<Tab>" :
       \ coc#refresh()
+inoremap <expr> <S-Tab> coc#pum#visible() ? coc#pum#prev(1) : "\<S-Tab>"
 
-" Use <cr> to confirm completion
+" Enter: confirm completion or insert newline
 inoremap <silent><expr> <CR> coc#pum#visible() ? coc#pum#confirm()
                               \: "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
 
-" Use K to show documentation in preview window.
-nnoremap <silent> K :call ShowDocumentation()<CR>
-
-" use <c-space>for trigger completion
+" Manually trigger completion
 if has('nvim')
   inoremap <silent><expr> <c-space> coc#refresh()
 else
   inoremap <silent><expr> <c-@> coc#refresh()
 endif
 
-inoremap <expr> <Tab> coc#pum#visible() ? coc#pum#next(1) : "\<Tab>"
-inoremap <expr> <S-Tab> coc#pum#visible() ? coc#pum#prev(1) : "\<S-Tab>"
-
-" Highlight the symbol and its references when holding the cursor.
+" Highlight symbol and references on cursor hold
 autocmd CursorHold * silent call CocActionAsync('highlight')
-
-" Symbol renaming.
-nmap <leader>n <Plug>(coc-rename)
-
-" Run the Code Lens action on the current line.
-nmap <leader>cl  <Plug>(coc-codelens-action)
 
 function! CheckBackspace() abort
   let col = col('.') - 1
@@ -160,170 +212,55 @@ function! ShowDocumentation()
 endfunction
 
 " #############
-" 
+" Go
 " #############
-let g:python3_host_prog='/usr/bin/python3'
-
-" Enable line numbers
-set number
-
-" Flash screen instead of beep sound
-set visualbell
-
-" Change how vim represents characters on the screen
-set encoding=utf-8
-
-" Set the encoding of files written
-set fileencoding=utf-8
-
-autocmd FileType yaml setlocal ts=2 sts=2 sw=2 expandtab
-set ts=4 sw=4 sts=4 expandtab
-" ts - show existing tab with 4 spaces width
-" sw - when indenting with '>', use 4 spaces width
-" sts - control <tab> and <bs> keys to match tabstop
-
-let g:indentLine_char = '⦙'
-set foldlevelstart=20
-
-set undofile " Maintain undo history between sessions
-set undodir=~/.vim/undodir
-
-" Hardcore mode, disable arrow keys.
-"noremap <Up> <NOP>
-"noremap <Down> <NOP>
-"noremap <Left> <NOP>
-"noremap <Right> <NOP>
-
-filetype plugin indent on
-
-" Allow backspace to delete indentation and inserted text
-" i.e. how it works in most programs
-set backspace=indent,eol,start
-" indent  allow backspacing over autoindent
-" eol     allow backspacing over line breaks (join lines)
-" start   allow backspacing over the start of insert; CTRL-W and CTRL-U
-"        stop once at the start of insert.
-
-
-" go-vim plugin specific commands
-" Also run `goimports` on your current file on every save
-" Might be be slow on large codebases, if so, just comment it out
-let g:go_fmt_command = "goimports"
-
-" Status line types/signatures.
-let g:go_auto_type_info = 1
-
-let g:nord_cursor_line_number_background = 1
-
-"au filetype go inoremap <buffer> . .<C-x><C-o>
-
-" If you want to disable gofmt on save
-" let g:go_fmt_autosave = 0
-
-
-" NERDTree plugin specific commands
-:nnoremap <C-g> :NERDTreeToggle<CR>
-" autocmd vimenter * NERDTree
-
-
-" air-line plugin specific commands
-let g:airline_powerline_fonts = 1
-
-if !exists('g:airline_symbols')
-    let g:airline_symbols = {}
-endif
-
-" unicode symbols
-let g:airline_left_sep = '»'
-let g:airline_left_sep = '▶'
-let g:airline_right_sep = '«'
-let g:airline_right_sep = '◀'
-let g:airline_symbols.linenr = '␊'
-let g:airline_symbols.linenr = '␤'
-let g:airline_symbols.linenr = '¶'
-let g:airline_symbols.branch = '⎇'
-let g:airline_symbols.paste = 'ρ'
-let g:airline_symbols.paste = 'Þ'
-let g:airline_symbols.paste = '∥'
-let g:airline_symbols.whitespace = 'Ξ'
-
-" airline symbols
-let g:airline_left_sep = ''
-let g:airline_left_alt_sep = ''
-let g:airline_right_sep = ''
-let g:airline_right_alt_sep = ''
-let g:airline_symbols.branch = ''
-let g:airline_symbols.readonly = ''
-let g:airline_symbols.linenr = ''
-
-" ale
-"let g:ale_fixers = {
-"    \ 'javascript': ['eslint']
-"    \}
-"
-"nmap <leader>d <Plug>(ale_fix)
-"let g:ale_fix_on_save = 1
-"let g:ale_sign_error = '×'
-"let g:ale_sign_warning = '⚠'
-"highlight ALEErrorSign ctermbg=NONE ctermfg=red
-"highlight ALEWarningSign ctermbg=NONE ctermfg=yellow
-
-"au filetype go inoremap <buffer> . .<C-x><C-o>
-
-set autowrite
-
-" Go syntax highlighting
-let g:go_highlight_types = 1
-let g:go_highlight_fields = 1
-let g:go_highlight_functions = 1
-let g:go_highlight_function_calls = 1
-let g:go_highlight_operators = 1
-let g:go_highlight_extra_types = 1
+let g:go_highlight_types             = 1
+let g:go_highlight_fields            = 1
+let g:go_highlight_functions         = 1
+let g:go_highlight_function_calls    = 1
+let g:go_highlight_operators         = 1
+let g:go_highlight_extra_types       = 1
 let g:go_highlight_build_constraints = 1
-let g:go_highlight_generate_tags = 1
+let g:go_highlight_generate_tags     = 1
 
-" Auto formatting and importing
-let g:go_fmt_autosave = 1
-let g:go_fmt_command = "goimports"
-
-" Status line types/signatures
-let g:go_auto_type_info = 1
-
-" Disable vim-go autocompletion in favor of CoC
+let g:go_fmt_autosave            = 1
+let g:go_fmt_command             = "goimports"
+let g:go_auto_type_info          = 1
 let g:go_code_completion_enabled = 0
+let g:go_diagnostics_enabled     = 0
+let g:go_metalinter_enabled      = []
 
-" disable all linters as that is taken care of by coc.nvim
-let g:go_diagnostics_enabled = 0
-let g:go_metalinter_enabled = []
+function! s:build_go_files()
+  let l:file = expand('%')
+  if l:file =~# '^\f\+_test\.go$'
+    call go#test#Test(0, 1)
+  else
+    call go#cmd#Build(0)
+  endif
+endfunction
 
-autocmd FileType go nmap <leader>b :<C-u>call <SID>build_go_files()<CR>
-autocmd FileType go nmap <leader>r  <Plug>(go-run)
-autocmd FileType go nmap <leader>l  <Plug>(go-test)
+augroup go_commands
+  autocmd!
+  autocmd FileType go nmap <buffer> <leader>b :<C-u>call <SID>build_go_files()<CR>
+  autocmd FileType go nmap <buffer> <leader>r <Plug>(go-run)
+  autocmd FileType go nmap <buffer> <leader>l <Plug>(go-test)
+augroup END
 
-let g:NERDTreeDirArrowExpandable = '▸'
-let g:NERDTreeDirArrowCollapsible = '▾'
-let NERDTreeShowHidden=1
+" #############
+" Rust
+" #############
+let g:rustfmt_autosave = 1
 
-" Custom function to remove Alacritty padding when using VIM
-"function RemoveAlacrittyPadding()
-"    silent !sed -i '37s/15/0/' ~/.config/alacritty/alacritty.yml
-"    silent !sed -i '38s/20/0/' ~/.config/alacritty/alacritty.yml
-"endfunction
-"
-"function AddAlacrittyPadding()
-"    silent !sed -i '37s/0/15/' ~/.config/alacritty/alacritty.yml
-"    silent !sed -i '38s/0/20/' ~/.config/alacritty/alacritty.yml
-"endfunction
-"
-"autocmd VimEnter * call RemoveAlacrittyPadding()
-"autocmd VimLeavePre * call AddAlacrittyPadding()
+augroup rust_commands
+  autocmd!
+  autocmd FileType rust nmap <buffer> <leader>rb :CargoBuild<CR>
+  autocmd FileType rust nmap <buffer> <leader>rt :CargoTest<CR>
+  autocmd FileType rust nmap <buffer> <leader>rr :CargoRun<CR>
+  autocmd FileType rust nmap <buffer> <leader>rc :CargoCheck<CR>
+augroup END
 
-" vim hardcodes background color erase even if the terminfo file does
-" not contain bce (not to mention that libvte based terminals
-" incorrectly contain bce in their terminfo files). This causes
-" incorrect background rendering when using a color theme with a
-" background color.
+" #############
+" Terminal
+" #############
+" Prevent terminal emulators from erasing background with background color
 let &t_ut=''
-
-" Set effect of visual bell to nothing
-set t_vb=

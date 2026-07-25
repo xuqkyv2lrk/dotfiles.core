@@ -1,31 +1,31 @@
 {
     "diagnostic.errorSign": "✘",
     "diagnostic.warningSign": "⚠",
-    "diagnostic.infoSign": "?",
+    "diagnostic.infoSign": "ℹ",
+    "diagnostic.hintSign": "›",
     "diagnostic.checkCurrentLine": true,
     "codeLens.enable": true,
+    "suggest.noselect": true,
     "coc.preferences.formatOnSaveFiletypes": [
         "css",
         "markdown",
         "typescript",
         "javascript",
-        "json",
-        "go",
-        "rust"
+        "json"
     ],
+    "coc.preferences.hoverTarget": "float",
     "workspace.ignoredFolders": [
         "$HOME",
         "$HOME/.cargo/**",
         "$HOME/.rustup/**"
     ],
-    "coc.preferences.hoverTarget": "float",
     "languageserver": {
         "terraform": {
             "command": "terraform-ls",
             "args": ["serve"],
             "filetypes": [
-              "terraform",
-              "tf"
+                "terraform",
+                "tf"
             ],
             "initializationOptions": {},
             "settings": {}
@@ -45,12 +45,11 @@
             }
         }
     },
-    "rust-analyzer.serverPath": "/usr/bin/rust-analyzer",
-    "go.goplsOptions": {
-        "staticcheck": true
-    },
+    "rust-analyzer.check.command": "clippy",
+    "rust-analyzer.inlayHints.typeHints.enable": true,
+    "rust-analyzer.inlayHints.parameterHints.enable": true,
+    "rust-analyzer.inlayHints.chainingHints.enable": true,
     "yaml.schemas": {
         "kubernetes": "/*.yaml"
     }
 }
-
