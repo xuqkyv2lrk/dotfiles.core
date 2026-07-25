@@ -11,7 +11,8 @@
         "markdown",
         "typescript",
         "javascript",
-        "json"
+        "json",
+        "rust"
     ],
     "coc.preferences.hoverTarget": "float",
     "workspace.ignoredFolders": [
