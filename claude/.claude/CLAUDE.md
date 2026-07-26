@@ -1,5 +1,11 @@
 # Global Development Standards
 
+## Destructive Operations (Global - Always Required)
+- **Always confirm scope before any destructive action**: deletion, overwrite, remote rm, database drops, etc.
+- Never interpret a broad instruction (e.g. "clean up ~/completed") as permission to delete everything under that path — ask which subdirectories or files specifically.
+- List exactly what will be deleted and wait for explicit per-item confirmation before proceeding.
+- This applies to both local and remote targets (ssh, kubectl exec, etc.).
+
 ## Comments Policy (Global - All Languages)
 - Keep comments minimal if code is self-explanatory
 - Add brief comments only when the purpose isn't obvious
