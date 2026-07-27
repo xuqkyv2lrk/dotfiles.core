@@ -1,0 +1,477 @@
+#compdef cargo
+
+_cargo() {
+    local context state state_descr line
+    typeset -A opt_args
+
+    local -a common_opts
+    common_opts=(
+        '--verbose[Use verbose output]'
+        '--quiet[Do not print cargo log messages]'
+        '--color=[When to use color]:color:(auto always never)'
+        '--frozen[Require Cargo.lock and cache are up to date]'
+        '--locked[Require Cargo.lock is up to date]'
+        '--offline[Run without accessing the network]'
+        '--config=[Override a configuration value]:key=value'
+        '-h[Print help]'
+        '--help[Print help]'
+    )
+
+    _arguments -C \
+        '(-V --version)'{-V,--version}'[Print version info and exit]' \
+        '(-h --help)'{-h,--help}'[Print help]' \
+        '--list[List installed commands]' \
+        ${common_opts[@]} \
+        '1: :_cargo_commands' \
+        '*:: :->args'
+
+    case $state in
+        args)
+            case $words[1] in
+                add)
+                    _arguments \
+                        '--dev[Add as dev dependency]' \
+                        '--build[Add as build dependency]' \
+                        '--target=[Add as dependency for the given target]:target' \
+                        '--git=[Git URL to add]:url' \
+                        '--branch=[Branch to use]:branch' \
+                        '--tag=[Tag to use]:tag' \
+                        '--rev=[Rev to use]:rev' \
+                        '--path=[File path to add]:path:_files' \
+                        '--registry=[Registry to use]:registry' \
+                        '--features=[Features to activate]:features' \
+                        '--no-default-features[Do not activate default features]' \
+                        '--optional[Mark the dependency as optional]' \
+                        '--rename=[Rename the dependency]:name' \
+                        '--dry-run[Do not actually write the manifest]' \
+                        ${common_opts[@]} \
+                        '*:crate name'
+                    ;;
+                bench)
+                    _arguments \
+                        '--lib[Benchmark the package'"'"'s library]' \
+                        '--bin=[Benchmark the specified binary]:bin' \
+                        '--bins[Benchmark all binaries]' \
+                        '--example=[Benchmark the specified example]:example' \
+                        '--examples[Benchmark all examples]' \
+                        '--test=[Benchmark the specified integration test]:test' \
+                        '--tests[Benchmark all tests]' \
+                        '--bench=[Benchmark the specified benchmark]:bench' \
+                        '--benches[Benchmark all benchmarks]' \
+                        '--all-targets[Benchmark all targets]' \
+                        '--no-run[Compile but do not run benchmarks]' \
+                        '--no-fail-fast[Run all benchmarks regardless of failure]' \
+                        '(-p --package)'{-p,--package}'=[Benchmark specified packages]:package' \
+                        '--workspace[Benchmark all packages in the workspace]' \
+                        '--exclude=[Exclude specified packages]:package' \
+                        '--all[Alias for --workspace]' \
+                        '(-j --jobs)'{-j,--jobs}'=[Number of parallel jobs]:jobs' \
+                        '--release[Build artifacts in release mode]' \
+                        '--profile=[Build artifacts with the specified profile]:profile' \
+                        '--features=[Space-separated list of features]:features' \
+                        '--all-features[Activate all available features]' \
+                        '--no-default-features[Do not activate default features]' \
+                        '--target=[Benchmark for the target triple]:target' \
+                        '--target-dir=[Directory for all generated artifacts]:dir:_files -/' \
+                        '--manifest-path=[Path to Cargo.toml]:path:_files' \
+                        '--message-format=[Error format]:format:(human json short)' \
+                        ${common_opts[@]}
+                    ;;
+                build|b)
+                    _arguments \
+                        '--lib[Build the package'"'"'s library]' \
+                        '--bin=[Build the specified binary]:bin' \
+                        '--bins[Build all binaries]' \
+                        '--example=[Build the specified example]:example' \
+                        '--examples[Build all examples]' \
+                        '--test=[Build the specified integration test]:test' \
+                        '--tests[Build all tests]' \
+                        '--bench=[Build the specified benchmark]:bench' \
+                        '--benches[Build all benchmarks]' \
+                        '--all-targets[Build all targets]' \
+                        '(-p --package)'{-p,--package}'=[Build specified packages]:package' \
+                        '--workspace[Build all packages in the workspace]' \
+                        '--exclude=[Exclude specified packages]:package' \
+                        '--all[Alias for --workspace]' \
+                        '(-j --jobs)'{-j,--jobs}'=[Number of parallel jobs]:jobs' \
+                        '(-r --release)'{-r,--release}'[Build artifacts in release mode]' \
+                        '--profile=[Build artifacts with the specified profile]:profile' \
+                        '--features=[Space-separated list of features]:features' \
+                        '--all-features[Activate all available features]' \
+                        '--no-default-features[Do not activate default features]' \
+                        '--target=[Build for the target triple]:target' \
+                        '--target-dir=[Directory for all generated artifacts]:dir:_files -/' \
+                        '--out-dir=[Copy final artifacts to this directory]:dir:_files -/' \
+                        '--manifest-path=[Path to Cargo.toml]:path:_files' \
+                        '--message-format=[Error format]:format:(human json short)' \
+                        '--build-plan[Output the build plan in JSON]' \
+                        ${common_opts[@]}
+                    ;;
+                check|c)
+                    _arguments \
+                        '--lib[Check the package'"'"'s library]' \
+                        '--bin=[Check the specified binary]:bin' \
+                        '--bins[Check all binaries]' \
+                        '--example=[Check the specified example]:example' \
+                        '--examples[Check all examples]' \
+                        '--test=[Check the specified integration test]:test' \
+                        '--tests[Check all tests]' \
+                        '--bench=[Check the specified benchmark]:bench' \
+                        '--benches[Check all benchmarks]' \
+                        '--all-targets[Check all targets]' \
+                        '(-p --package)'{-p,--package}'=[Check specified packages]:package' \
+                        '--workspace[Check all packages in the workspace]' \
+                        '--exclude=[Exclude specified packages]:package' \
+                        '--all[Alias for --workspace]' \
+                        '(-j --jobs)'{-j,--jobs}'=[Number of parallel jobs]:jobs' \
+                        '--release[Check artifacts in release mode]' \
+                        '--profile=[Check artifacts with the specified profile]:profile' \
+                        '--features=[Space-separated list of features]:features' \
+                        '--all-features[Activate all available features]' \
+                        '--no-default-features[Do not activate default features]' \
+                        '--target=[Check for the target triple]:target' \
+                        '--target-dir=[Directory for all generated artifacts]:dir:_files -/' \
+                        '--manifest-path=[Path to Cargo.toml]:path:_files' \
+                        '--message-format=[Error format]:format:(human json short)' \
+                        ${common_opts[@]}
+                    ;;
+                clean)
+                    _arguments \
+                        '(-p --package)'{-p,--package}'=[Clean specified packages]:package' \
+                        '--manifest-path=[Path to Cargo.toml]:path:_files' \
+                        '--target=[Target triple to clean output for]:target' \
+                        '--target-dir=[Directory for all generated artifacts]:dir:_files -/' \
+                        '--release[Clean release artifacts]' \
+                        '--profile=[Clean artifacts of the specified profile]:profile' \
+                        '--doc[Clean just the documentation directory]' \
+                        ${common_opts[@]}
+                    ;;
+                clippy)
+                    _arguments \
+                        '--lib[Check the package'"'"'s library]' \
+                        '--bin=[Check the specified binary]:bin' \
+                        '--bins[Check all binaries]' \
+                        '--example=[Check the specified example]:example' \
+                        '--examples[Check all examples]' \
+                        '--test=[Check the specified integration test]:test' \
+                        '--tests[Check all tests]' \
+                        '--bench=[Check the specified benchmark]:bench' \
+                        '--benches[Check all benchmarks]' \
+                        '--all-targets[Check all targets]' \
+                        '--fix[Automatically apply lint suggestions]' \
+                        '--allow-dirty[Allow fixing even if working directory is dirty]' \
+                        '--allow-staged[Allow fixing even if staged changes are present]' \
+                        '(-p --package)'{-p,--package}'=[Check specified packages]:package' \
+                        '--workspace[Check all packages in the workspace]' \
+                        '--exclude=[Exclude specified packages]:package' \
+                        '--all[Alias for --workspace]' \
+                        '(-j --jobs)'{-j,--jobs}'=[Number of parallel jobs]:jobs' \
+                        '--release[Check artifacts in release mode]' \
+                        '--profile=[Check artifacts with the specified profile]:profile' \
+                        '--features=[Space-separated list of features]:features' \
+                        '--all-features[Activate all available features]' \
+                        '--no-default-features[Do not activate default features]' \
+                        '--target=[Check for the target triple]:target' \
+                        '--manifest-path=[Path to Cargo.toml]:path:_files' \
+                        '--message-format=[Error format]:format:(human json short)' \
+                        ${common_opts[@]}
+                    ;;
+                doc|d)
+                    _arguments \
+                        '--open[Opens the docs in a browser after building them]' \
+                        '--no-deps[Do not build documentation for dependencies]' \
+                        '--document-private-items[Include non-public items in the documentation]' \
+                        '--lib[Document the package'"'"'s library]' \
+                        '--bin=[Document the specified binary]:bin' \
+                        '--bins[Document all binaries]' \
+                        '(-p --package)'{-p,--package}'=[Document specified packages]:package' \
+                        '--workspace[Document all packages in the workspace]' \
+                        '--exclude=[Exclude specified packages]:package' \
+                        '--all[Alias for --workspace]' \
+                        '(-j --jobs)'{-j,--jobs}'=[Number of parallel jobs]:jobs' \
+                        '--release[Build artifacts in release mode]' \
+                        '--profile=[Build artifacts with the specified profile]:profile' \
+                        '--features=[Space-separated list of features]:features' \
+                        '--all-features[Activate all available features]' \
+                        '--no-default-features[Do not activate default features]' \
+                        '--target=[Build for the target triple]:target' \
+                        '--target-dir=[Directory for all generated artifacts]:dir:_files -/' \
+                        '--manifest-path=[Path to Cargo.toml]:path:_files' \
+                        '--message-format=[Error format]:format:(human json short)' \
+                        ${common_opts[@]}
+                    ;;
+                fix)
+                    _arguments \
+                        '--lib[Fix the package'"'"'s library]' \
+                        '--bin=[Fix the specified binary]:bin' \
+                        '--bins[Fix all binaries]' \
+                        '--example=[Fix the specified example]:example' \
+                        '--examples[Fix all examples]' \
+                        '--test=[Fix the specified integration test]:test' \
+                        '--tests[Fix all tests]' \
+                        '--bench=[Fix the specified benchmark]:bench' \
+                        '--benches[Fix all benchmarks]' \
+                        '--all-targets[Fix all targets]' \
+                        '--broken-code[Fix code even if it already has compiler errors]' \
+                        '--edition=[Fix in preparation for the specified edition]:edition:(2015 2018 2021 2024)' \
+                        '--edition-idioms[Fix warnings to migrate to the idioms of an edition]' \
+                        '--allow-no-vcs[Fix code even if a VCS was not detected]' \
+                        '--allow-dirty[Fix code even if the working directory has changes]' \
+                        '--allow-staged[Fix code even if staged changes are present]' \
+                        '(-p --package)'{-p,--package}'=[Fix specified packages]:package' \
+                        '--workspace[Fix all packages in the workspace]' \
+                        '--exclude=[Exclude specified packages]:package' \
+                        '(-j --jobs)'{-j,--jobs}'=[Number of parallel jobs]:jobs' \
+                        '--release[Fix artifacts in release mode]' \
+                        '--profile=[Fix artifacts with the specified profile]:profile' \
+                        '--features=[Space-separated list of features]:features' \
+                        '--all-features[Activate all available features]' \
+                        '--no-default-features[Do not activate default features]' \
+                        '--target=[Fix for the target triple]:target' \
+                        '--manifest-path=[Path to Cargo.toml]:path:_files' \
+                        ${common_opts[@]}
+                    ;;
+                fmt)
+                    _arguments \
+                        '--all[Format all packages]' \
+                        '--check[Run in check mode]' \
+                        '(-p --package)'{-p,--package}'=[Format specified packages]:package' \
+                        '--manifest-path=[Path to Cargo.toml]:path:_files' \
+                        '--message-format=[Error format]:format:(human json short)' \
+                        ${common_opts[@]}
+                    ;;
+                init)
+                    _arguments \
+                        '--bin[Use a binary (application) template]' \
+                        '--lib[Use a library template]' \
+                        '--edition=[Edition to set for the crate]:edition:(2015 2018 2021 2024)' \
+                        '--name=[Set the package name]:name' \
+                        '--vcs=[Initialize a new repository for the given version control system]:vcs:(git hg pijul fossil none)' \
+                        '--registry=[Registry to use]:registry' \
+                        ${common_opts[@]} \
+                        '::path:_files -/'
+                    ;;
+                install)
+                    _arguments \
+                        '--version=[Specify a version to install]:version' \
+                        '--git=[Git URL to install from]:url' \
+                        '--branch=[Branch to use when installing from git]:branch' \
+                        '--tag=[Tag to use when installing from git]:tag' \
+                        '--rev=[Specific commit to use when installing from git]:rev' \
+                        '--path=[Filesystem path to install from]:path:_files -/' \
+                        '--list[List all installed packages and their versions]' \
+                        '(-f --force)'{-f,--force}'[Force overwriting existing crates or binaries]' \
+                        '--no-track[Do not save tracking information]' \
+                        '--bin=[Install only the specified binary]:bin' \
+                        '--bins[Install all binaries]' \
+                        '--example=[Install only the specified example]:example' \
+                        '--examples[Install all examples]' \
+                        '--root=[Directory to install packages into]:dir:_files -/' \
+                        '--registry=[Registry to use]:registry' \
+                        '--index=[Registry index URL to install from]:url' \
+                        '(-j --jobs)'{-j,--jobs}'=[Number of parallel jobs]:jobs' \
+                        '--release[Build in release mode]' \
+                        '--profile=[Build with the specified profile]:profile' \
+                        '--features=[Space-separated list of features]:features' \
+                        '--all-features[Activate all available features]' \
+                        '--no-default-features[Do not activate default features]' \
+                        '--target=[Install for the target triple]:target' \
+                        '--target-dir=[Directory for all generated artifacts]:dir:_files -/' \
+                        '--debug[Build in debug mode]' \
+                        ${common_opts[@]} \
+                        '*:crate'
+                    ;;
+                new)
+                    _arguments \
+                        '--bin[Use a binary (application) template]' \
+                        '--lib[Use a library template]' \
+                        '--edition=[Edition to set for the crate]:edition:(2015 2018 2021 2024)' \
+                        '--name=[Set the package name]:name' \
+                        '--vcs=[Initialize a new repository for the given version control system]:vcs:(git hg pijul fossil none)' \
+                        '--registry=[Registry to use]:registry' \
+                        ${common_opts[@]} \
+                        ':path:_files -/'
+                    ;;
+                publish)
+                    _arguments \
+                        '--dry-run[Perform all checks without uploading]' \
+                        '--token=[API token to use when authenticating]:token' \
+                        '--no-verify[Do not verify the contents by building them]' \
+                        '--allow-dirty[Allow dirty working directories to be packaged]' \
+                        '--index=[Registry index URL to upload to]:url' \
+                        '--registry=[Registry to publish to]:registry' \
+                        '(-p --package)'{-p,--package}'=[Package to publish]:package' \
+                        '(-j --jobs)'{-j,--jobs}'=[Number of parallel jobs]:jobs' \
+                        '--target=[Build for the target triple]:target' \
+                        '--target-dir=[Directory for all generated artifacts]:dir:_files -/' \
+                        '--manifest-path=[Path to Cargo.toml]:path:_files' \
+                        '--features=[Space-separated list of features]:features' \
+                        '--all-features[Activate all available features]' \
+                        '--no-default-features[Do not activate default features]' \
+                        ${common_opts[@]}
+                    ;;
+                remove|rm)
+                    _arguments \
+                        '--dev[Remove as dev dependency]' \
+                        '--build[Remove as build dependency]' \
+                        '--target=[Remove as dependency for the given target]:target' \
+                        '--dry-run[Do not actually write the manifest]' \
+                        '(-p --package)'{-p,--package}'=[Package to remove from]:package' \
+                        '--manifest-path=[Path to Cargo.toml]:path:_files' \
+                        ${common_opts[@]} \
+                        '*:dependency name'
+                    ;;
+                run|r)
+                    _arguments \
+                        '--bin=[Name of the bin target to run]:bin' \
+                        '--example=[Name of the example target to run]:example' \
+                        '(-p --package)'{-p,--package}'=[Package with the target to run]:package' \
+                        '(-j --jobs)'{-j,--jobs}'=[Number of parallel jobs]:jobs' \
+                        '(-r --release)'{-r,--release}'[Build artifacts in release mode]' \
+                        '--profile=[Build artifacts with the specified profile]:profile' \
+                        '--features=[Space-separated list of features]:features' \
+                        '--all-features[Activate all available features]' \
+                        '--no-default-features[Do not activate default features]' \
+                        '--target=[Build for the target triple]:target' \
+                        '--target-dir=[Directory for all generated artifacts]:dir:_files -/' \
+                        '--manifest-path=[Path to Cargo.toml]:path:_files' \
+                        '--message-format=[Error format]:format:(human json short)' \
+                        ${common_opts[@]} \
+                        '-- :*:: :_default'
+                    ;;
+                search)
+                    _arguments \
+                        '--registry=[Registry to search in]:registry' \
+                        '--index=[Registry index URL to search]:url' \
+                        '--limit=[Limit the number of results]:limit' \
+                        ${common_opts[@]} \
+                        ':query'
+                    ;;
+                test|t)
+                    _arguments \
+                        '--lib[Test the package'"'"'s library]' \
+                        '--bin=[Test the specified binary]:bin' \
+                        '--bins[Test all binaries]' \
+                        '--example=[Test the specified example]:example' \
+                        '--examples[Test all examples]' \
+                        '--test=[Test the specified integration test]:test' \
+                        '--tests[Test all tests]' \
+                        '--bench=[Test the specified benchmark]:bench' \
+                        '--benches[Test all benchmarks]' \
+                        '--all-targets[Test all targets]' \
+                        '--doc[Test only library'"'"'s documentation]' \
+                        '--no-run[Compile but do not run tests]' \
+                        '--no-fail-fast[Run all tests regardless of failure]' \
+                        '(-p --package)'{-p,--package}'=[Test specified packages]:package' \
+                        '--workspace[Test all packages in the workspace]' \
+                        '--exclude=[Exclude specified packages]:package' \
+                        '--all[Alias for --workspace]' \
+                        '(-j --jobs)'{-j,--jobs}'=[Number of parallel jobs]:jobs' \
+                        '(-r --release)'{-r,--release}'[Build artifacts in release mode]' \
+                        '--profile=[Build artifacts with the specified profile]:profile' \
+                        '--features=[Space-separated list of features]:features' \
+                        '--all-features[Activate all available features]' \
+                        '--no-default-features[Do not activate default features]' \
+                        '--target=[Test for the target triple]:target' \
+                        '--target-dir=[Directory for all generated artifacts]:dir:_files -/' \
+                        '--manifest-path=[Path to Cargo.toml]:path:_files' \
+                        '--message-format=[Error format]:format:(human json short)' \
+                        ${common_opts[@]} \
+                        '::test filter'
+                    ;;
+                tree)
+                    _arguments \
+                        '(-p --package)'{-p,--package}'=[Display the tree for the specified package]:package' \
+                        '--workspace[Display the tree for all packages in the workspace]' \
+                        '--exclude=[Exclude specified packages]:package' \
+                        '--features=[Space-separated list of features]:features' \
+                        '--all-features[Activate all available features]' \
+                        '--no-default-features[Do not activate default features]' \
+                        '--target=[Filter dependencies matching the given target triple]:target' \
+                        '(-i --invert)'{-i,--invert}'=[Invert the tree direction]:package' \
+                        '--prune=[Prune the given package from the display]:package' \
+                        '--depth=[Maximum display depth of the dependency tree]:depth' \
+                        '--no-dedupe[Do not de-duplicate repeated dependencies]' \
+                        '(-d --duplicates)'{-d,--duplicates}'[Show only dependencies which come in multiple versions]' \
+                        '(-e --edges)'{-e,--edges}'=[The kinds of dependencies to display]:edges:(all no-dev features normal build dev)' \
+                        '--manifest-path=[Path to Cargo.toml]:path:_files' \
+                        '--prefix=[Change the prefix format]:prefix:(depth indent none)' \
+                        ${common_opts[@]}
+                    ;;
+                uninstall)
+                    _arguments \
+                        '--root=[Directory to uninstall packages from]:dir:_files -/' \
+                        '--bin=[Only uninstall the specified binary]:bin' \
+                        ${common_opts[@]} \
+                        '*:crate'
+                    ;;
+                update)
+                    _arguments \
+                        '(-p --package)'{-p,--package}'=[Update only the specified package]:package' \
+                        '--aggressive[Force updating all dependencies]' \
+                        '--dry-run[Display what would be updated but do not write the lock file]' \
+                        '--precise=[Update to a precise version]:version' \
+                        '--workspace[Only update the workspace packages]' \
+                        '--manifest-path=[Path to Cargo.toml]:path:_files' \
+                        ${common_opts[@]}
+                    ;;
+                *)
+                    _default
+                    ;;
+            esac
+            ;;
+    esac
+}
+
+_cargo_commands() {
+    local -a cmds
+    cmds=(
+        'add:Add dependencies to a Cargo.toml manifest file'
+        'bench:Execute all benchmarks of a local package'
+        'build:Compile a local package and all of its dependencies'
+        'b:Alias for build'
+        'check:Check a local package and all of its dependencies for errors'
+        'c:Alias for check'
+        'clean:Remove artifacts that cargo has generated in the past'
+        'clippy:Check a package to catch common mistakes'
+        'config:Inspect configuration values'
+        'doc:Build a package'"'"'s documentation'
+        'd:Alias for doc'
+        'fetch:Fetch dependencies of a package from the network'
+        'fix:Automatically fix lint warnings reported by rustc'
+        'fmt:Format all bin and lib files of the current crate'
+        'generate-lockfile:Generate the lockfile for a package'
+        'help:Displays help for a cargo command'
+        'info:Display information about a package'
+        'init:Create a new cargo package in an existing directory'
+        'install:Install a Rust binary'
+        'locate-project:Print a JSON representation of a Cargo.toml file'"'"'s location'
+        'login:Log in to a registry'
+        'logout:Remove an API token from the registry locally'
+        'metadata:Output the resolved dependencies in machine-readable format'
+        'new:Create a new cargo package at <path>'
+        'owner:Manage the owners of a crate on the registry'
+        'package:Assemble the local package into a distributable tarball'
+        'pkgid:Print a fully qualified package specification'
+        'publish:Upload a package to the registry'
+        'remove:Remove dependencies from a Cargo.toml manifest file'
+        'rm:Alias for remove'
+        'r:Alias for run'
+        'report:Generate and display various kinds of reports'
+        'run:Run a binary or example of the local package'
+        'rustc:Compile a package and pass extra options to the compiler'
+        'rustdoc:Build a package'"'"'s documentation with custom flags'
+        'search:Search packages in the registry'
+        'test:Execute all unit and integration tests'
+        't:Alias for test'
+        'tree:Display a tree visualization of a dependency graph'
+        'uninstall:Remove a Rust binary'
+        'update:Update dependencies as recorded in the local lock file'
+        'vendor:Vendor all dependencies for a project locally'
+        'version:Show version information'
+        'yank:Remove a pushed crate from the index'
+    )
+    _describe 'command' cmds
+}
+
+_cargo "$@"
