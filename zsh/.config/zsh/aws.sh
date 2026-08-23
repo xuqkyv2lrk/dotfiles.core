@@ -62,7 +62,26 @@ function _prompt_read() {
 
   if [[ -n "$ZSH_VERSION" ]]; then
     eval "$var_name=\"$default_val\""
+
+    # zsh-autosuggestions' POSTDISPLAY overlay doesn't clear on backspace
+    # inside vared's recursive edit loop, leaving stray un-deletable text.
+    local had_autosuggest=0
+    if typeset -f _zsh_autosuggest_disable >/dev/null; then
+      had_autosuggest=1
+      _zsh_autosuggest_disable
+    fi
+
+    # In vi mode, backspace can't erase text pre-filled before insert mode
+    # started, so the default_val becomes permanent and typing just appends.
+    # Switch to emacs keymap for the duration of the prompt to allow full
+    # editing, then restore whatever keymap was active.
+    local prev_keymap_cmd
+    prev_keymap_cmd=$(bindkey -lL main 2>/dev/null)
+    bindkey -e
     vared -p "$prompt_text" "$var_name"
+    [[ -n "$prev_keymap_cmd" ]] && eval "$prev_keymap_cmd"
+
+    [[ "$had_autosuggest" -eq 1 ]] && _zsh_autosuggest_enable
   else
     read -re -p "$prompt_text" -i "$default_val" "$var_name"
   fi
@@ -83,6 +102,25 @@ function _urlencode() {
   python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1]))" "$1"
 }
 
+function _resolve_sso_session() {
+  local profile="$1"
+  local seen=""
+  while [[ -n "$profile" ]]; do
+    if [[ ",${seen}," == *",${profile},"* ]]; then
+      return 1
+    fi
+    seen="${seen},${profile}"
+    local sso_session
+    sso_session=$(aws configure get sso_session --profile "$profile" 2>/dev/null)
+    if [[ -n "$sso_session" ]]; then
+      printf '%s' "$sso_session"
+      return 0
+    fi
+    profile=$(aws configure get source_profile --profile "$profile" 2>/dev/null)
+  done
+  return 1
+}
+
 function _activate_profile() {
   local profile="$1"
   local silent="${2:-false}"
@@ -99,7 +137,10 @@ function _activate_profile() {
   local target_region
   target_region=$(aws configure get region --profile "$profile" 2>/dev/null)
 
-  if [[ -n "$(aws configure get sso_account_id --profile "$profile" 2>/dev/null)" ]]; then
+  local chained_sso_session
+  chained_sso_session=$(_resolve_sso_session "$profile")
+
+  if [[ -n "$(aws configure get sso_account_id --profile "$profile" 2>/dev/null)" || -n "$chained_sso_session" ]]; then
     local export_cmd
     export_cmd=$(aws configure export-credentials --profile "$profile" --format env 2>/dev/null)
 
@@ -112,7 +153,7 @@ function _activate_profile() {
       stop_spinner
       print_warning "SSO session expired, re-authenticating..."
       local sso_session
-      sso_session=$(aws configure get sso_session --profile "$profile" 2>/dev/null)
+      sso_session="$chained_sso_session"
       if [[ -n "$sso_session" ]]; then
         aws sso login --sso-session "$sso_session" >&2 || return 1
       else

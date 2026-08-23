@@ -118,11 +118,10 @@ Recommended PR description structure:
 - **Changes**: Bullet list of key changes.
 - **Breaking Changes**: Explicitly list any breaking changes and migration steps, or state "None".
 - **Testing**: How this was tested (commands, environments, important notes).
-- **Checklist**:
-  - [ ] Tests added or updated
-  - [ ] Documentation updated if needed
-  - [ ] Breaking changes documented if any
-  - [ ] No AI attribution footers in commits
+
+Do NOT include a Checklist section (e.g. "Tests added", "Docs updated") in PR
+descriptions — it's unnecessary noise. If merge-gating steps are needed (e.g.
+"confirm X before merging"), state them as prose, not a checkbox list.
 
 PRs SHOULD be small, focused, and pass checks before review.
 

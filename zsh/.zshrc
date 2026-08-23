@@ -106,3 +106,4 @@ eval "$(atuin init zsh)"
 eval "$(mise activate zsh)"
 
 [[ -f "${HOME}/.local/share/../bin/env" ]] && . "${HOME}/.local/share/../bin/env"
+alias mo='DISPLAY=:0 nohup uv run ~/opt/mo.py > ~/opt/mo.log 2>&1 &'
