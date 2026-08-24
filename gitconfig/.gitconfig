@@ -78,6 +78,9 @@
 [includeIf "hasconfig:remote.*.url:gitlab:*/**"]
     path = ~/.gitconfig-gitlab
 
+[includeIf "hasconfig:remote.*.url:gh-arturo-builds-infra:*/**"]
+    path = ~/.gitconfig-github-portfolio
+
 [includeIf "hasconfig:remote.*.url:gh-arterro:*/**"]
     path = ~/.gitconfig-github
 
