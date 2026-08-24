@@ -56,8 +56,8 @@ alias gconfig="g --git-dir=${DIDOTS}/.git --work-tree=${DIDOTS}"
 # ****
 # sshfs
 # ****
-alias mountseedbox="sshfs ucc:/home/eighty6/completed/anime ~/mnt/seedbox -o cache=yes,kernel_cache,Compression=no,reconnect,ServerAliveInterval=15,ServerAliveCountMax=3,attr_timeout=115200,entry_timeout=1200"
-alias umountseedbox="fusermount -u ~/mnt/seedbox"
+alias mountseedbox="mkdir -p \"\${HOME}/mnt/seedbox\" && sshfs ucc:/home/eighty6/completed/anime \"\${HOME}/mnt/seedbox\" -o cache=yes,kernel_cache,Compression=no,reconnect,ServerAliveInterval=15,ServerAliveCountMax=3,attr_timeout=115200,entry_timeout=1200"
+alias umountseedbox="fusermount -u \"\${HOME}/mnt/seedbox\""
 
 # ****
 # nixos
