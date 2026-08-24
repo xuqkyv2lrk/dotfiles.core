@@ -1,5 +1,11 @@
 # Global Development Standards
 
+## Testing Before Full Runs (Global - Always Required)
+- **Always test on a single representative sample before running any batch operation** — encode one file, transcode one item, migrate one record, etc.
+- Never assume a script works correctly based on logic alone. Verify the actual output: play the file, check the data, inspect the result.
+- Never question the user's observation that something looks or behaves wrong. Trust their eyes and test to find out why, don't argue the data proves otherwise.
+- Only proceed with a full run after the user has explicitly confirmed the test output is correct.
+
 ## Destructive Operations (Global - Always Required)
 - **Always confirm scope before any destructive action**: deletion, overwrite, remote rm, database drops, etc.
 - Never interpret a broad instruction (e.g. "clean up ~/completed") as permission to delete everything under that path — ask which subdirectories or files specifically.
