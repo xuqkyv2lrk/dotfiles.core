@@ -6,6 +6,12 @@
 - Never question the user's observation that something looks or behaves wrong. Trust their eyes and test to find out why, don't argue the data proves otherwise.
 - Only proceed with a full run after the user has explicitly confirmed the test output is correct.
 
+## Debugging and Investigation Process (Global - Always Required)
+- **Form a hypothesis fast, then test it** — one or two targeted checks, then act. Do not spiral into exhaustive log analysis collecting evidence for a theory that isn't tested.
+- **Time-box investigation** — if the root cause isn't clear after 2-3 tool calls, state the best hypothesis and apply the fix. Wrong hypothesis → revert and try again. That is faster than 20 minutes of analysis.
+- **Never narrate the investigation to yourself** — do not make 10 tool calls reading logs and correlating output without taking action. Each tool call should either confirm a hypothesis or directly fix the problem.
+- **Common patterns have known fixes** — apply them immediately. Example: ffmpeg inheriting stdin in a while loop → `< /dev/null`. Don't spend time proving what you already know.
+
 ## Destructive Operations (Global - Always Required)
 - **Always confirm scope before any destructive action**: deletion, overwrite, remote rm, database drops, etc.
 - Never interpret a broad instruction (e.g. "clean up ~/completed") as permission to delete everything under that path — ask which subdirectories or files specifically.
