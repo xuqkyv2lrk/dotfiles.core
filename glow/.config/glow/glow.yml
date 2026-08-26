@@ -1,4 +1,4 @@
-style: "catppuccin-mocha.json"
+style: "auto"
 mouse: false
 pager: false
 width: 80

@@ -17,6 +17,7 @@ export DIDOTS="${HOME}/.dotfiles.di"
 export NOTES="${HOME}/notes"
 #export TERM="xterm-256color"
 export MISE_EXPERIMENTAL=1
+export GLAMOUR_STYLE="${HOME}/.config/glow/catppuccin-mocha.json"
 export LESS="-eirMX"
 export PAGER="less"
 export EDITOR="vim"
