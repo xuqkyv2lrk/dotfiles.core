@@ -52,26 +52,28 @@ Applies to all dotfiles repos and any submodules in one shot.
 
 ## Repository layout
 
-```
-.
-├── bat/              # bat (cat with syntax highlighting)
-├── btop/             # btop system monitor
-├── cava/             # cava audio visualizer
-├── claude/           # Claude Code settings
-├── delta/            # git-delta diff viewer
-├── doom/             # Doom Emacs
-├── fastfetch/        # fastfetch system info
-├── foot/             # foot terminal
-├── gitconfig/        # git settings
-├── mpd/              # MPD music daemon
-├── ncmpcpp/          # ncmpcpp MPD client
-├── ncspot/           # ncspot Spotify client
-├── ohmyposh/         # Oh My Posh shell themes
-├── tmux/             # tmux multiplexer
-├── vim/              # Vim
-├── yazi/             # yazi file manager
-└── zsh/              # zsh shell
-```
+Each directory is an independent stow package. Stowing it symlinks its contents into `$HOME`.
+
+| Package | Description |
+|---------|-------------|
+| `bat` | bat (cat with syntax highlighting) |
+| `btop` | btop system monitor |
+| `cava` | cava audio visualizer |
+| `claude` | Claude Code settings |
+| `delta` | git-delta diff viewer |
+| `doom` | Doom Emacs |
+| `fastfetch` | fastfetch system info |
+| `foot` | foot terminal (Linux/Wayland) |
+| `ghostty` | Ghostty terminal (macOS) |
+| `gitconfig` | git settings |
+| `mpd` | MPD music daemon |
+| `ncmpcpp` | ncmpcpp MPD client |
+| `ncspot` | ncspot Spotify client |
+| `ohmyposh` | Oh My Posh shell themes |
+| `tmux` | tmux multiplexer |
+| `vim` | Vim |
+| `yazi` | yazi file manager |
+| `zsh` | zsh shell |
 
 ## License
 
