@@ -25,10 +25,8 @@
     "block_prefix": "\n",
     "block_suffix": "\n",
     "bold": true,
-    "color": "#1e1e2e",
-    "background_color": "#b4befe",
-    "prefix": "  ",
-    "suffix": "  "
+    "color": "#b4befe",
+    "prefix": "# "
   },
   "h2": {
     "bold": true,
