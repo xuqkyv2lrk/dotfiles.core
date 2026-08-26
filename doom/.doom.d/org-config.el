@@ -166,14 +166,18 @@
 
 (map! :leader
       (:prefix ("n" . "notes")
-       :desc "Find node"     "f" #'org-roam-node-find
-       :desc "Insert link"   "i" #'org-roam-node-insert
-       :desc "Daily note"    "j" #'org-roam-dailies-goto-today
-       :desc "Capture"       "c" #'org-roam-capture
-       :desc "Backlinks"     "l" #'org-roam-buffer-toggle))
+       :desc "Find node"          "f" #'org-roam-node-find
+       :desc "Insert link"        "i" #'org-roam-node-insert
+       :desc "Daily note"         "j" #'org-roam-dailies-goto-today
+       :desc "Capture (pick)"     "c" #'org-roam-capture
+       :desc "New default note"   "d" (lambda () (interactive) (org-roam-capture nil "d"))
+       :desc "New hugo note"      "n" (lambda () (interactive) (org-roam-capture nil "n"))
+       :desc "Backlinks"          "l" #'org-roam-buffer-toggle))
 
 (map! "C-c n f" #'org-roam-node-find
       "C-c n i" #'org-roam-node-insert
       "C-c n j" #'org-roam-dailies-goto-today
       "C-c n c" #'org-roam-capture
+      "C-c n d" (lambda () (interactive) (org-roam-capture nil "d"))
+      "C-c n n" (lambda () (interactive) (org-roam-capture nil "n"))
       "C-c n l" #'org-roam-buffer-toggle)
