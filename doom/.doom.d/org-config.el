@@ -142,7 +142,7 @@
   (setq org-roam-capture-templates
         '(("d" "default" plain "%?"
            :target (file+head "${slug}.org"
-                              "#+TITLE: ${title}\n#+hugo_lastmod: Time-stamp: <>\n\n")
+                              "#+title: ${title}\n#+filetags: \n#+date: %u\n\n")
            :unnarrowed t)
           ("n" "note" plain "%?"
            :target (file+head "${slug}.org"
