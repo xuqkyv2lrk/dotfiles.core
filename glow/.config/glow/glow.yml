@@ -1,4 +1,4 @@
 mouse: false
-pager: false
+pager: true
 width: 80
 all: false
