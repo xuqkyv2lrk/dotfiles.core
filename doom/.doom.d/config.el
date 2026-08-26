@@ -55,7 +55,8 @@
 (setq org-directory "~/notes/tome")
 
 ;; Only display the first two menu items on the dashboard menu
-(setq +doom-dashboard-menu-sections (cl-subseq +doom-dashboard-menu-sections 0 2))
+(after! doom-dashboard
+  (setq +doom-dashboard-menu-sections (cl-subseq +doom-dashboard-menu-sections 0 2)))
 
 ;; Make frame a bit larger than default sat startup
 (setq initial-frame-alist '((top . 1) (left . 1) (width . 143) (height . 55)))
