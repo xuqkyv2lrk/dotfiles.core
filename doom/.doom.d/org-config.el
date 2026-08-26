@@ -33,7 +33,7 @@
 (defun ethicz/buffer-face-mode-variable ()
   "Set font to a variable width (proportional) fonts in current buffer"
   (interactive)
-  (setq buffer-face-mode-face '(:family "Iosevka SS08"
+  (setq buffer-face-mode-face '(:family "Iosevka Fixed SS08"
                                 :height 150
                                 :width normal))
   (buffer-face-mode))
@@ -86,7 +86,7 @@
     (set-face-attribute 'org-ellipsis nil
                         :underline nil)
     (set-face-attribute 'variable-pitch nil
-                        :family "Iosevka SS08" :height 1.03)
+                        :family "Iosevka Fixed SS08" :height 1.03)
    
     ;; Set the font style for the headings
     (dolist (face '((org-level-1 . 1.5)
@@ -158,5 +158,18 @@
                               "#+TITLE: ${title}\n")
            :unnarrowed t)))
   (setq org-roam-node-display-template
-        (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag)))
-  (org-roam-setup))
+        (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag))))
+
+(map! :leader
+      (:prefix ("n" . "notes")
+       :desc "Find node"     "f" #'org-roam-node-find
+       :desc "Insert link"   "i" #'org-roam-node-insert
+       :desc "Daily note"    "j" #'org-roam-dailies-goto-today
+       :desc "Capture"       "c" #'org-roam-capture
+       :desc "Backlinks"     "l" #'org-roam-buffer-toggle))
+
+(map! "C-c n f" #'org-roam-node-find
+      "C-c n i" #'org-roam-node-insert
+      "C-c n j" #'org-roam-dailies-goto-today
+      "C-c n c" #'org-roam-capture
+      "C-c n l" #'org-roam-buffer-toggle)
