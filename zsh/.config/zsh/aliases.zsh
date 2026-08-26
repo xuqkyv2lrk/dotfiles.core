@@ -28,7 +28,7 @@ fi
 # glow
 # ****
 if command -v glow &> /dev/null; then
-  alias glow='glow --style "${HOME}/.config/glow/catppuccin-mocha.json"'
+  alias glow='command glow --style "${HOME}/.config/glow/catppuccin-mocha.json"'
 fi
 
 
