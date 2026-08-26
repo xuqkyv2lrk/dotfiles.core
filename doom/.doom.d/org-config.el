@@ -146,7 +146,7 @@
            :unnarrowed t)
           ("n" "note" plain "%?"
            :target (file+head "${slug}.org"
-                              "#+title: ${title}\n#+hugo_custom_front_matter: :summary \n#+hugo_date: %u\n#+hugo_auto_set_lastmod: Time-stamp: <>\n#+hugo_code_fence: nil\n#+hugo_section: notes\n#+hugo_draft: false\n#+hugo_tags: \n#+property: header-args :dir run :mkdirp yes :padline no :exports both :results code :eval no-export\n#+export_file_name: ${slug}\n")
+                              "#+title: ${title}\n#+hugo_tags: \n#+hugo_custom_front_matter: :summary \n#+hugo_draft: false\n#+hugo_date: %u\n#+hugo_auto_set_lastmod: Time-stamp: <>\n#+hugo_section: notes\n#+hugo_code_fence: nil\n#+property: header-args :dir run :mkdirp yes :padline no :exports both :results code :eval no-export\n#+export_file_name: ${slug}\n")
            :empty-lines-after 1
            :unnarrowed t)
           ("t" "temp" plain "%?"
