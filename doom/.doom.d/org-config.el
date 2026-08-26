@@ -117,6 +117,13 @@
 (add-hook 'write-file-hooks 'time-stamp)
 (add-hook 'org-capture-mode-hook 'evil-insert-state)
 
+(advice-add '+org/return :around
+            (lambda (orig &optional _arg)
+              (if (and (bound-and-true-p org-capture-mode)
+                       (org-in-src-block-p))
+                  (newline)
+                (funcall orig))))
+
 ;; Enable native compilation for better performance
 (when (fboundp 'native-comp-available-p)
   (setq comp-deferred-compilation t))
@@ -164,20 +171,3 @@
   (setq org-roam-node-display-template
         (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag))))
 
-(map! :leader
-      (:prefix ("n" . "notes")
-       :desc "Find node"          "f" #'org-roam-node-find
-       :desc "Insert link"        "i" #'org-roam-node-insert
-       :desc "Daily note"         "j" #'org-roam-dailies-goto-today
-       :desc "Capture (pick)"     "c" #'org-roam-capture
-       :desc "New default note"   "d" (lambda () (interactive) (org-roam-capture nil "d"))
-       :desc "New hugo note"      "n" (lambda () (interactive) (org-roam-capture nil "n"))
-       :desc "Backlinks"          "l" #'org-roam-buffer-toggle))
-
-(map! "C-c n f" #'org-roam-node-find
-      "C-c n i" #'org-roam-node-insert
-      "C-c n j" #'org-roam-dailies-goto-today
-      "C-c n c" #'org-roam-capture
-      "C-c n d" (lambda () (interactive) (org-roam-capture nil "d"))
-      "C-c n n" (lambda () (interactive) (org-roam-capture nil "n"))
-      "C-c n l" #'org-roam-buffer-toggle)
