@@ -16,8 +16,6 @@
 (after! doom-dashboard
   (setq +doom-dashboard-menu-sections (cl-subseq +doom-dashboard-menu-sections 0 2)))
 
-(setq initial-frame-alist '((top . 1) (left . 1) (width . 143) (height . 55)))
-
 (after! markdown-mode
   (setq markdown-hide-markup t))
 
