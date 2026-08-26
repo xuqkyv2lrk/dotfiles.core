@@ -121,6 +121,10 @@
 (when (fboundp 'native-comp-available-p)
   (setq comp-deferred-compilation t))
 
+;; Suppress harmless org-element warning when org-roam is called from non-org buffers
+(with-eval-after-load 'org-element
+  (add-to-list 'warning-suppress-types '(org-element)))
+
 ;; ****************
 ;; ORG-ROAM
 ;; ****************
