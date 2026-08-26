@@ -1,4 +1,4 @@
-style: "~/.config/glow/catppuccin-mocha.json"
+style: "catppuccin-mocha.json"
 mouse: false
 pager: false
 width: 80
