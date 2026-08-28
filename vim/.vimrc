@@ -48,6 +48,7 @@ Plug 'tpope/vim-fugitive'
 
 " Editing
 Plug 'godlygeek/tabular'
+Plug 'jiangmiao/auto-pairs'
 
 " Notes / Markdown
 Plug 'vimwiki/vimwiki'
@@ -57,6 +58,12 @@ call plug#end()
 
 filetype plugin indent on
 syntax on
+
+" #############
+" auto-pairs
+" #############
+let g:AutoPairsFlyMode        = 0
+let g:AutoPairsMultilineClose = 0
 
 " #############
 " General
@@ -109,6 +116,26 @@ highlight Identifier ctermfg=150
 set ts=4 sw=4 sts=4 expandtab
 
 autocmd FileType yaml setlocal ts=2 sts=2 sw=2 expandtab
+
+" #############
+" Editing
+" #############
+function! WrapWithBlock() abort
+    let l:keyword = input('Wrap with: ')
+    if empty(l:keyword)
+        return
+    endif
+
+    let l:start  = line("'<")
+    let l:end    = line("'>")
+    let l:indent = matchstr(getline(l:start), '^\s*')
+
+    call append(l:end, l:indent . '}')
+    call append(l:start - 1, l:indent . l:keyword . ' {')
+    execute (l:start + 1) . ',' . (l:end + 1) . 'normal! >>'
+endfunction
+
+xnoremap <leader>w :<C-u>call WrapWithBlock()<CR>
 
 " #############
 " JSON / Markdown
