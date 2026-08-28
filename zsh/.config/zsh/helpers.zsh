@@ -384,6 +384,19 @@ function dotfiles-use-ssh() {
 }
 
 #***
+# Mount seedbox via sshfs, clearing any stale FUSE mount first
+#***
+function mountseedbox() {
+    local mountpoint="${HOME}/mnt/seedbox"
+    mkdir -p "${mountpoint}"
+    if grep -q "${mountpoint}" /proc/mounts; then
+        fusermount3 -uz "${mountpoint}"
+    fi
+    sshfs ucc:/home/eighty6/completed/anime "${mountpoint}" \
+        -o cache=yes,kernel_cache,Compression=no,reconnect,ServerAliveInterval=15,ServerAliveCountMax=3,attr_timeout=115200,entry_timeout=1200
+}
+
+#***
 # List all custom shell helper functions
 #***
 function helpers() {
@@ -404,6 +417,7 @@ function helpers() {
 
     printf "${CMOCHA_BLUE}Filesystem${NC}\n"
     printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "mkcd <dir>"             "create directory and cd into it"
+    printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "mountseedbox"           "mount seedbox via sshfs, clearing stale FUSE mounts"
     printf "\n"
 
     printf "${CMOCHA_BLUE}Kubernetes${NC}\n"
