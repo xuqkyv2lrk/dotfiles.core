@@ -49,6 +49,7 @@ Plug 'tpope/vim-fugitive'
 " Editing
 Plug 'godlygeek/tabular'
 Plug 'jiangmiao/auto-pairs'
+Plug 'tpope/vim-surround'
 
 " Notes / Markdown
 Plug 'vimwiki/vimwiki'
