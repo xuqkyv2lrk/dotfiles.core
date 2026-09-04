@@ -7,7 +7,14 @@ export COLORTERM=truecolor
 export XDG_CONFIG_HOME="${HOME}/.config"
 export XDG_CACHE_HOME="${HOME}/.cache"
 export XDG_DATA_HOME="${HOME}/.local/share"
-export DISTRO=$(. /etc/os-release && echo ${ID})
+# DISTRO: os-release ID on Linux (arch, ubuntu, nixos, ...), "macos" on Darwin
+if [[ -r /etc/os-release ]]; then
+  export DISTRO="$(. /etc/os-release && print -r -- "${ID}")"
+elif [[ "${OSTYPE}" == darwin* ]]; then
+  export DISTRO="macos"
+else
+  export DISTRO="$(uname -s | tr '[:upper:]' '[:lower:]')"
+fi
 export SHELL="$(which zsh)"
 export WORK="${HOME}/work"
 export GPG_TTY="${TTY}"
