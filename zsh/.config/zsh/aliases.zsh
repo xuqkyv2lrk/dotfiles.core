@@ -71,3 +71,8 @@ alias umountseedbox="fusermount3 -u \"\${HOME}/mnt/seedbox\""
 alias nrs="sudo nixos-rebuild switch --flake \"$HOME/.dotfiles.nix#$(hostname)\""
 alias nrb="sudo nixos-rebuild boot --flake \"$HOME/.dotfiles.nix#$(hostname)\""
 alias nru="sudo nix flake update --flake \"$HOME/.dotfiles.nix\" && sudo nixos-rebuild boot --flake \"$HOME/.dotfiles.nix#$(hostname)\" && git -C \"$HOME/.dotfiles.nix\" add flake.lock && git -C \"$HOME/.dotfiles.nix\" commit -m \"chore(nix): update flake inputs\" && git -C \"$HOME/.dotfiles.nix\" push"
+
+# ****
+# rune
+# ****
+alias recr="aws ecr get-login-password --region us-gov-east-1 --profile rune | docker login --username AWS --password-stdin 316045363320.dkr.ecr.us-gov-east-1.amazonaws.com"
