@@ -3,7 +3,7 @@
 # ── Font ─────────────────────────────────────────────────────────────────────
 
 font-family = JetBrainsMono Nerd Font
-font-size = 11
+font-size = 14
 
 # ── Window ───────────────────────────────────────────────────────────────────
 
@@ -11,6 +11,10 @@ macos-titlebar-style = hidden
 window-padding-x = 10
 window-padding-y = 10
 background-opacity = 1.0
+
+# No "Close this terminal?" / "Quit and close N windows?" prompts — closing
+# a split/tab/window or quitting the app (Cmd+Q) just does it immediately.
+confirm-close-surface = false
 
 # ── Cursor ───────────────────────────────────────────────────────────────────
 
