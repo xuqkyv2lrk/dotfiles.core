@@ -34,7 +34,6 @@
 
 [merge]
     conflictstyle = zdiff3
-    ff = false
 
 [rerere]
     enabled = true
@@ -54,7 +53,7 @@
 
 [pack]
     deltaCacheSize = 2047m
-    threads = 1
+    threads = 0
     windowMemory = 1g
 
 [delta]
