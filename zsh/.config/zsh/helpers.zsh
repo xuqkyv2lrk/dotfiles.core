@@ -213,6 +213,21 @@ function rmbranch() {
 }
 
 #***
+# Commit+push a message Cursor staged/wrote to a temp file. Run this
+# yourself (not via the agent's shell tool) so the commit isn't tagged
+# with a "Co-authored-by: Cursor" trailer.
+#***
+function cursor-commit() {
+    local msg_file="/tmp/cursor-commit-msg.txt"
+    if [[ ! -s "${msg_file}" ]]; then
+        printf "cursor-commit: no message at %s\n" "${msg_file}" >&2
+        return 1
+    fi
+
+    git commit -F "${msg_file}" && git push
+}
+
+#***
 # Export encrypted GPG private key
 #***
 function egpg() {
@@ -437,6 +452,7 @@ function helpers() {
     printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "prunebranches <keep>"   "delete all local branches except the named one"
     printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "mvbranch [branch]"      "rename a branch locally and on remote"
     printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "rmbranch <name>"        "delete a branch locally and on remote"
+    printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "cursor-commit"          "commit+push a message Cursor wrote to /tmp, without its co-author trailer"
     printf "\n"
 
     printf "${CMOCHA_BLUE}Dotfiles${NC}\n"
@@ -444,7 +460,7 @@ function helpers() {
     printf "\n"
 
     printf "${CMOCHA_BLUE}AWS${NC}\n"
-    printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "setaws [profile]"       "export AWS credentials; auto-detects SSO vs API key (--help)"
+    printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "setaws [profile]"       "export AWS credentials; auto-detects SSO or API key (--help)"
     printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "awsconsole [profile]"   "open AWS Console in a Firefox container tab (--help)"
     printf "\n"
 

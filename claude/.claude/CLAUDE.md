@@ -42,6 +42,14 @@
 - **NEVER bypass GPG signing**: Do not use `-c commit.gpgsign=false`, `--no-gpg-sign`, or any
   other flag that circumvents commit signing. If signing fails, stop and ask the user to unlock
   their GPG key.
+- **NEVER invoke `git commit` directly (Cursor / cursor-agent only — does not
+  apply to Claude Code)**: agent-run `git commit` gets an unwanted `--trailer`
+  attribution added automatically. Instead, stage the intended files, write the commit message to
+  `/tmp/cursor-commit-msg.txt`, then run the user's `cursor-commit` shell function (`git commit -F
+  /tmp/cursor-commit-msg.txt && git push`) yourself — it does not get the trailer treatment.
+  If `cursor-commit`'s push is rejected as non-fast-forward, fetch and rebase onto the remote
+  branch before retrying the push. Claude Code has no such trailer-injection problem — commit
+  directly there with plain `git commit`, GPG signing intact.
 
 ### Commit Message Format
 - All commit messages MUST follow this format:  
