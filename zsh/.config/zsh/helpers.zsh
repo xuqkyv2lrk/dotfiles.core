@@ -460,7 +460,7 @@ function helpers() {
     printf "\n"
 
     printf "${CMOCHA_BLUE}AWS${NC}\n"
-    printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "setaws [profile]"       "export AWS credentials; auto-detects SSO or API key (--help)"
+    printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "setaws [profile]"       "export AWS credentials; auto-detects SSO, Okta, or API key (--help)"
     printf "  ${CMOCHA_GREEN}%-30s${NC} ${CMOCHA_SURFACE0}%s${NC}\n" "awsconsole [profile]"   "open AWS Console in a Firefox container tab (--help)"
     printf "\n"
 
