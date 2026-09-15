@@ -23,6 +23,18 @@
 - Add brief comments only when the purpose isn't obvious
 - Comment complex logic or non-standard approaches
 - Document function parameters and return values if unclear
+- Comments capture *decisions*, not context. Explain a non-obvious choice
+  (a version pin, a workaround, a constraint) right next to the line it
+  affects — e.g. `# pinned to 1.x: 2.x requires aws provider >= 6.28, this
+  repo caps aws at < 6.0`. That kind of comment survives the code being
+  read in isolation, years later, with no ticket handy.
+- Ticket/issue IDs, "why we're building this," rollout plans, and other
+  narrative background belong in the commit message and PR description,
+  not source comments — they rot the moment the ticket is closed or the
+  PR is merged, and the code has no way to keep them current.
+- Prefer a short comment on the specific line/block over a file-header
+  paragraph recapping the ticket or restating what the resources below
+  obviously do.
 
 ## Documentation Standards (Global)
 - Write documentation in natural, flowing prose
