@@ -1,3 +1,8 @@
 [flavor]
+# Pinned instead of using dark/light auto-detection: yazi's OSC 11
+# background query gets answered differently by Ghostty vs tmux, so the
+# adaptive light/dark pick was flipping to catppuccin-latte on a dark
+# background outside tmux. Everything else here (Ghostty, tmux) is
+# hardcoded to mocha anyway, so there's no light-mode case to support.
 dark  = "catppuccin-mocha"
-light = "catppuccin-latte"
+light = "catppuccin-mocha"
