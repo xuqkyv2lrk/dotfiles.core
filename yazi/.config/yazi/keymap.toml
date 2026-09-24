@@ -1,12 +1,22 @@
 # Custom keybindings — ported from ranger commands.py
 # Requires atool: aunpack (extract) and apack (compress)
 
-[[manager.prepend_keymap]]
+[[mgr.prepend_keymap]]
 on   = ["e", "x"]
 run  = "shell --confirm 'aunpack $@'"
 desc = "Extract selected archives here"
 
-[[manager.prepend_keymap]]
+[[mgr.prepend_keymap]]
 on   = ["e", "z"]
 run  = "shell --interactive 'apack $@'"
 desc = "Compress selected files"
+
+[[mgr.prepend_keymap]]
+on   = "R"
+run  = "shell 'open -R \"$1\"'"
+desc = "Reveal hovered file in Finder"
+
+[[mgr.prepend_keymap]]
+on   = "T"
+run  = "shell '[ -n \"$TMUX\" ] && tmux new-window -c \"$PWD\" || true'"
+desc = "Open a new tmux window here"
