@@ -50,6 +50,16 @@ dotfiles-use-ssh
 Prompts for a remote prefix — enter `git@gitlab.com` or an SSH config alias (e.g. `gitlab`).
 Applies to all dotfiles repos and any submodules in one shot.
 
+## Cheatsheets
+
+`.cheatsheets/` holds one Markdown file per tool covering its keybindings
+(plus a few non-obvious defaults). It's dot-prefixed on purpose so `stow */`
+skips it — nothing in there gets symlinked into `$HOME`.
+
+View one with `cheat <tool>` (renders via `glow`, defined in
+`zsh/.config/zsh/functions.zsh`), or run `cheat` with no argument to list
+what's available.
+
 ## Repository layout
 
 Each directory is an independent stow package. Stowing it symlinks its contents into `$HOME`.
