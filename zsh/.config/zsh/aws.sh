@@ -353,8 +353,16 @@ function _okta_authenticate() {
   [[ -n "$session_duration" ]] && cmd+=(--aws-session-duration "$session_duration")
 
   printf "\n%b==>%b Authenticating with Okta...%b\n\n" "${MAUVE}" "${TEAL}" "${RESET}" >&2
-  "${cmd[@]}" >&2
-  local okta_exit_status=$?
+  # Only stderr is piped (to space out the "Updated profile" line); stdout must
+  # stay a TTY for okta-aws-cli's interactive role picker. pipefail keeps the CLI's status;
+  # no_multios stops zsh from tee-ing stdout to both the pipe and fd 3.
+  local okta_exit_status
+  (
+    set -o pipefail
+    [[ -n "$ZSH_VERSION" ]] && setopt no_multios
+    { "${cmd[@]}" 2>&1 1>&3 3>&- | awk '/^Updated profile/ { print "" } { print; fflush() }' >&2; } 3>&2
+  )
+  okta_exit_status=$?
   printf "\n" >&2
   return "$okta_exit_status"
 }
