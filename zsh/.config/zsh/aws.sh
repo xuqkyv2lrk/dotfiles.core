@@ -445,3 +445,155 @@ function setaws() {
     _activate_profile "$profile_name"
   fi
 }
+
+# Same name always maps to the same Firefox container color.
+function _get_container_color() {
+  local name="$1"
+  local colors="blue turquoise green yellow orange red pink purple"
+  local hex
+  hex=$(printf '%s' "$name" | sha256sum | cut -c1-8)
+  printf '%s' "$colors" | cut -d' ' -f"$(( 16#${hex} % 8 + 1 ))"
+}
+
+# Trades a profile's credentials for a console sign-in URL. The federation
+# endpoint only accepts temporary credentials, so long-term IAM user keys
+# are swapped for a federation token first.
+function _federated_console_url() {
+  local profile="$1"
+  local signin_host="$2"
+  local destination="$3"
+
+  local creds
+  creds=$(aws configure export-credentials --profile "$profile" --format process 2>/dev/null) || return 1
+
+  if [[ -z "$(jq -r '.SessionToken // empty' <<< "$creds")" ]]; then
+    # Federation token permissions are the intersection of the user's policies
+    # and this one, so allowing everything grants exactly what the user has.
+    creds=$(aws sts get-federation-token --profile "$profile" --name awsconsole \
+      --policy '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":"*","Resource":"*"}]}' \
+      --query Credentials --output json 2>/dev/null) || return 1
+  fi
+
+  local session signin_token
+  session=$(jq -c '{sessionId: .AccessKeyId, sessionKey: .SecretAccessKey, sessionToken: .SessionToken}' <<< "$creds")
+  signin_token=$(curl -fsS --get "https://${signin_host}/federation" \
+    --data-urlencode "Action=getSigninToken" \
+    --data-urlencode "Session=${session}" 2>/dev/null | jq -r '.SigninToken // empty')
+  [[ -z "$signin_token" ]] && return 1
+
+  printf 'https://%s/federation?Action=login&Issuer=awsconsole&Destination=%s&SigninToken=%s' \
+    "$signin_host" "$(_urlencode "$destination")" "$signin_token"
+}
+
+function awsconsole() {
+  [[ -n "$ZSH_VERSION" ]] && setopt localoptions no_notify no_monitor
+
+  local profile_name="${1:-}"
+  local container_name="${2:-}"
+
+  if [[ "$profile_name" == "-h" || "$profile_name" == "--help" ]]; then
+    printf "Usage: awsconsole [profile-name] [container-name]\n\n"
+    printf "Open the AWS Console in a Firefox container tab.\n\n"
+    printf "Arguments:\n"
+    printf "  profile-name    AWS profile to use (picker shown if omitted)\n"
+    printf "  container-name  Firefox container name (default: profile-name)\n\n"
+    printf "Sign-in method is detected from the profile:\n"
+    printf "  SSO profiles      Open through the SSO portal for the account and role\n"
+    printf "  Okta profiles     Re-authenticate if expired, then federate\n"
+    printf "  Role/API profiles Federate with temporary credentials\n\n"
+    printf "GovCloud regions (us-gov-*) use the GovCloud console endpoints.\n"
+    printf "Requires the 'Open external links in a container' Firefox extension.\n"
+    return 0
+  fi
+
+  if [[ -z "$profile_name" ]]; then
+    profile_name=$(aws configure list-profiles 2>/dev/null | _smart_picker "Console Profile: ")
+    [[ -z "$profile_name" ]] && return 1
+  fi
+
+  if ! aws configure list-profiles 2>/dev/null | grep -qx "$profile_name"; then
+    print_error "Profile '${profile_name}' not found."
+    return 1
+  fi
+  container_name="${container_name:-$profile_name}"
+
+  local region signin_host console_host
+  region=$(aws configure get region --profile "$profile_name" 2>/dev/null)
+  region="${region:-us-east-1}"
+  case "$region" in
+    us-gov-*)
+      signin_host="signin.amazonaws-us-gov.com"
+      console_host="console.amazonaws-us-gov.com"
+      ;;
+    *)
+      signin_host="signin.aws.amazon.com"
+      console_host="console.aws.amazon.com"
+      ;;
+  esac
+  local destination="https://${console_host}/console/home?region=${region}"
+
+  local sso_account_id sso_role_name sso_url url
+  sso_account_id=$(aws configure get sso_account_id --profile "$profile_name" 2>/dev/null)
+  sso_role_name=$(aws configure get sso_role_name --profile "$profile_name" 2>/dev/null)
+  sso_url=$(_get_sso_start_url "$profile_name")
+  sso_url="${sso_url%%\#*}"
+  sso_url="${sso_url%/}"
+
+  if [[ -n "$sso_url" && -n "$sso_account_id" && -n "$sso_role_name" ]]; then
+    # The SSO portal handles its own browser sign-in, so no local token is needed.
+    url="${sso_url}/#/console?account_id=${sso_account_id}&role_name=${sso_role_name}&destination=$(_urlencode "$destination")"
+  else
+    if [[ -n "$(aws configure get okta_org_domain --profile "$profile_name" 2>/dev/null)" ]]; then
+      local expiry_epoch
+      expiry_epoch=$(_iso8601_to_epoch "$(aws configure get x_security_token_expires --profile "$profile_name" 2>/dev/null)")
+      if [[ -z "$expiry_epoch" || "$expiry_epoch" -le "$(date -u +%s)" ]]; then
+        print_warning "Okta session expired, re-authenticating..."
+        _okta_authenticate "$profile_name" || { print_error "Okta authentication failed."; return 1; }
+      fi
+    fi
+
+    printf "%b Signing in %b%s %b" "${TEAL}" "${MAUVE}" "$profile_name" "${RESET}" >&2
+    spinner & spinner_pid=$!
+    disown "$spinner_pid" 2>/dev/null
+    url=$(_federated_console_url "$profile_name" "$signin_host" "$destination")
+
+    local sso_session
+    sso_session=$(_resolve_sso_session "$profile_name")
+    if [[ -z "$url" && -n "$sso_session" ]]; then
+      stop_spinner
+      print_warning "SSO session expired, re-authenticating..."
+      aws sso login --sso-session "$sso_session" >&2 || return 1
+      url=$(_federated_console_url "$profile_name" "$signin_host" "$destination")
+    fi
+    stop_spinner
+
+    if [[ -z "$url" ]]; then
+      print_error "Could not get a console sign-in URL for '${profile_name}'."
+      return 1
+    fi
+    printf "%b[done]%b\n" "${GREEN}" "${RESET}" >&2
+  fi
+
+  # The extension parses this with URLSearchParams, so the target URL must be
+  # encoded or everything after its first '&' is dropped.
+  local container_url
+  container_url="ext+container:name=$(_urlencode "$container_name")&color=$(_get_container_color "$container_name")&icon=briefcase&url=$(_urlencode "$url")"
+
+  case "$(uname -s)" in
+    Linux*)
+      if ! command -v firefox &>/dev/null; then
+        print_error "Firefox not found."
+        return 1
+      fi
+      nohup firefox "$container_url" >/dev/null 2>&1 &
+      disown
+      ;;
+    Darwin*)
+      open -a Firefox "$container_url"
+      ;;
+    *)
+      print_error "Unsupported operating system: $(uname -s)"
+      return 1
+      ;;
+  esac
+}
