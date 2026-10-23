@@ -98,7 +98,15 @@ behavior:
   sort_ascending_icon: ↑
   sort_descending_icon: ↓
   list_highlight_icon: ▶
-  playbar_control_labels: null
+  playbar_control_labels:
+    prev: "⠀⠀⠀󰒮⠀⠀⠀"
+    play_pause: "⠀⠀⠀󰐎⠀⠀⠀"
+    next: "⠀⠀⠀󰒭⠀⠀⠀"
+    shuffle: "⠀⠀⠀󰒟⠀⠀⠀"
+    repeat: "⠀⠀⠀󰑖⠀⠀⠀"
+    like: "⠀⠀⠀󰋕⠀⠀⠀"
+    vol_down: "⠀⠀⠀󰝞⠀⠀⠀"
+    vol_up: "⠀⠀⠀󰝝⠀⠀⠀"
   status_message_ttl_percent: 100
   playback_poll_seconds: 5
   table_scroll_padding: 5
@@ -119,7 +127,7 @@ theme:
   error_border: 243, 139, 168
   error_text: 243, 139, 168
   hint: 249, 226, 175
-  hovered: 203, 166, 247
+  hovered: 116, 98, 146
   inactive: 108, 112, 134
   playbar_background: 30, 30, 46
   playbar_progress: 166, 227, 161
