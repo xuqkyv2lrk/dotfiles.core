@@ -58,7 +58,7 @@ plug "zsh-users/zsh-autosuggestions"
 plug "zsh-users/zsh-syntax-highlighting"
 
 if [[ -z "$SSH_CONNECTION" ]] && [[ "$(tty)" != "/dev/tty1" ]]; then
-    eval "$(oh-my-posh init zsh --config ${HOME}/.config/ohmyposh/lean.yaml)"
+    eval "$(oh-my-posh init zsh --strict --config ${HOME}/.config/ohmyposh/lean.yaml)"
 fi
 
 # ****
