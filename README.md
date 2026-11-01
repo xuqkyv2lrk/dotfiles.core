@@ -18,7 +18,7 @@
 
 Configuration files for the programs I use daily. Each directory is a [GNU Stow](https://www.gnu.org/software/stow/) package that symlinks its contents into `$HOME`.
 
-For full machine setup — package installation, hardware configuration, and bootstrapping — see [dotfiles.bootstrap](https://gitlab.com/wd2nf8gqct/dotfiles.bootstrap).
+For full machine setup — package installation, hardware configuration, and bootstrapping — see [dotfiles.bootstrap](https://gitlab.com/wd2nf8gqct/dotfiles.bootstrap), or run `bash <(curl -fsSL dots.ethi.cz/boot)` on a fresh machine.
 
 ## Usage
 
